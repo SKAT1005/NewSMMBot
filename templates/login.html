@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Авторизация / Регистрация</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .auth-container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 350px;
+        }
+
+        .auth-container h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .auth-container .input-group {
+            margin-bottom: 15px;
+        }
+
+        .auth-container label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .auth-container input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .auth-container button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-bottom: 10px;
+        }
+
+        .auth-container .switch-btn {
+            background-color: transparent;
+            color: #007bff;
+            border: none;
+            text-decoration: underline;
+            font-size: 14px;
+        }
+
+        .auth-container .submit-btn {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .auth-container .submit-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .error {
+            color: red;
+            font-size: 13px;
+            display: none;
+            margin-top: -10px;
+            margin-bottom: 10px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .match {
+            color: green;
+            font-size: 13px;
+            display: none;
+            margin-top: -10px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="auth-container">
+        <div id="loginForm">
+            <form method="post">
+        {% csrf_token %}
+            <h2>Вход</h2>
+            <div class="input-group">
+                <label for="loginUsername">Логин</label>
+                <input type="text" required id="loginUsername" name="username" placeholder="Введите логин"/>
+            </div>
+            <div class="input-group">
+                <label for="loginPassword">Пароль</label>
+                <input type="password" required id="loginPassword" name="password" placeholder="Введите пароль"/>
+            </div>
+            <button class="submit-btn" name="login">Войти</button>
+            </form>
+            <button class="switch-btn" onclick="switchForm('register')">Нет аккаунта? Зарегистрироваться</button>
+        </div>
+
+    <!-- Регистрация -->
+        <div id="registerForm" class="hidden">
+            <form method="post">
+        {% csrf_token %}
+            <h2>Регистрация</h2>
+            <div class="input-group">
+                <label for="regUsername">Логин</label>
+                <input type="text" id="regUsername" name="username" required placeholder="Введите логин"/>
+            </div>
+            <div class="input-group">
+                <label for="regPassword">Пароль</label>
+                <input type="password" id="regPassword" name="password" required placeholder="Введите пароль"/>
+            </div>
+            <div class="input-group">
+                <label for="regConfirm">Повтор пароля</label>
+                <input type="password" id="regConfirm" name="password_confirm" required placeholder="Повторите пароль"/>
+            </div>
+            <div class="error" id="passwordMismatch">Пароли не совпадают!</div>
+            <div class="match" id="passwordMatch">Пароли совпадают!</div>
+            <button class="submit-btn" name="registration" type="submit">Зарегистрироваться</button>
+            </form>
+            <button class="switch-btn" onclick="switchForm('login')">Уже есть аккаунт? Войти</button>
+        </div>
+</div>
+
+<script>
+    function switchForm(form) {
+        document.getElementById('loginForm').classList.toggle('hidden', form !== 'login');
+        document.getElementById('registerForm').classList.toggle('hidden', form !== 'register');
+        document.getElementById('passwordMismatch').style.display = 'none';
+        document.getElementById('passwordMatch').style.display = 'none';
+    }
+
+    // Динамическая проверка паролей
+    const regPassword = document.getElementById('regPassword');
+    const regConfirm = document.getElementById('regConfirm');
+    const passwordMismatch = document.getElementById('passwordMismatch');
+    const passwordMatch = document.getElementById('passwordMatch');
+
+    regConfirm.addEventListener('input', function () {
+        if (regPassword.value !== regConfirm.value) {
+            passwordMismatch.style.display = 'block';
+            passwordMatch.style.display = 'none';
+        } else {
+            passwordMismatch.style.display = 'none';
+            passwordMatch.style.display = 'block';
+        }
+    });
+</script>
+</body>
+</html>

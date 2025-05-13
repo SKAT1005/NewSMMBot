@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Главная страница</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f8f9fa;
+            margin: 0;
+            display: flex;
+            justify-content: flex-start;
+            align-items: flex-start;
+            height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            width: 90%;
+            margin-top: 30px;
+            display: flex;
+            justify-content: flex-start;
+            position: relative;
+        }
+
+        /* Sidebar с кнопками (выход, создание задачи) */
+        .sidebar {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: #ffffff;
+            padding: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            text-align: center;
+            width: 180px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            height: auto;
+        }
+
+        .sidebar button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            background-color: #007bff;
+            color: white;
+        }
+
+        .sidebar button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Кнопка выхода */
+        .exit-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #ff4d4d;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .exit-btn:hover {
+            background-color: #d9534f;
+        }
+
+        .exit-btn img {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Секция с кнопками сверху по центру */
+        .top-buttons {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            position: relative;
+            top: 10px;
+            left: 0;
+        }
+
+        .top-buttons button {
+            margin: 0 15px;
+            padding: 5px 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .top-buttons button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Список задач */
+        .tasks-list {
+            margin-left: 210px; /* Убираем перекрытие задач */
+            width: calc(100% - 240px); /* Подстраиваем ширину задач */
+            background: white;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            height: auto;
+        }
+
+        .tasks-list h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .task {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            font-size: 16px;
+        }
+
+        .task:last-child {
+            border-bottom: none;
+        }
+
+        .task-info {
+            color: #555;
+        }
+
+        .task button {
+            padding: 8px 15px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .task button:hover {
+            background-color: #218838;
+        }
+
+        /* Пагинация */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .pagination button {
+            padding: 10px 15px;
+            margin: 0 5px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .pagination button:hover {
+            background-color: #0056b3;
+        }
+
+        .pagination button.disabled {
+            background-color: #dcdcdc;
+            cursor: not-allowed;
+        }
+
+        a.btn {
+            display: inline-block;
+            margin: 0 15px;
+            padding: 10px 20px;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- Кнопка выхода справа -->
+    <div class="exit-btn">
+        <a href="{% url "logout" %}"><img src="https://img.icons8.com/ios-filled/50/ffffff/exit.png" alt="Выход"/></a>
+    </div>
+
+    <div class="tasks-list">
+        <div class="top-buttons">
+        <button><a href="{% url "task_detail" %}" class="btn">Создать задачу</a></button>
+        <button><a href="{% url "template_detail" %}" class="btn">Создать шаблон</a></button>
+        <button><a href="{% url "template_list"%}" class="btn">Список шаблонов</a></button>
+    </div>
+        <br>
+
+        <h2>Список задач</h2>
+        <div id="tasksContainer">
+            <!-- Задачи будут добавлены через JavaScript -->
+        </div>
+
+        <!-- Пагинация -->
+        <div class="pagination">
+            <button id="prevPage" onclick="changePage(-1)" class="disabled">Предыдущая</button>
+            <button id="nextPage" onclick="changePage(1)">Следующая</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const tasks = [ {% for task in tasks %}
+        {channel: {{ task.channel_link }}, subscribers: {{task.sessions.count}}, id:{{task.id}} },
+        {% endfor %}
+
+    ];
+
+    let currentPage = 1;
+    const tasksPerPage = 10;
+
+    function renderTasks() {
+        const start = (currentPage - 1) * tasksPerPage;
+        const end = currentPage * tasksPerPage;
+        const tasksToShow = tasks.slice(start, end);
+
+        const tasksContainer = document.getElementById("tasksContainer");
+        tasksContainer.innerHTML = '';
+
+        tasksToShow.forEach(task => {
+            const taskElement = document.createElement("div");
+            taskElement.classList.add("task");
+
+            taskElement.innerHTML = `
+          <div class="task-info">
+            <a href="${task.id}"  target="_blank">${task.channel}</a> - ${task.subscribers} подписчиков
+          </div>
+          <button><a href="{% url "task_detail" %}?task_id=${task.id}" class="btn">Посмотреть задачу</a></button>
+        `;
+
+            tasksContainer.appendChild(taskElement);
+        });
+
+        document.getElementById("prevPage").classList.toggle("disabled", currentPage === 1);
+        document.getElementById("nextPage").classList.toggle("disabled", currentPage * tasksPerPage >= tasks.length);
+    }
+
+    function changePage(direction) {
+        currentPage += direction;
+        renderTasks();
+    }
+
+    renderTasks();
+</script>
+</body>
+</html>

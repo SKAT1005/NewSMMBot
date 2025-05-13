@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Создание задачи</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #e0eafc, #cfdef3);
+            margin: 0;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 700px;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .block {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        input[type="number"],
+        input[type="url"],
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4a90e2;
+            border: none;
+            color: white;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #357ab8;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .gender-inputs {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .gender-inputs input {
+            width: 70px;
+        }
+
+        small {
+            color: red;
+            margin-top: 5px;
+            display: block;
+        }
+
+        .sub-block {
+            margin-top: 15px;
+        }
+
+        .sub-block input,
+        .sub-block textarea,
+        .sub-block select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        .sub-block small {
+            display: block;
+            margin-top: 5px;
+            color: #666;
+            font-size: 0.85em;
+        }
+
+        .input-group > div {
+            margin-bottom: 8px;
+        }
+
+
+        .button-group-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 40px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #fff;
+            transition: background 0.2s ease;
+        }
+
+        .btn-save {
+            background-color: #007bff;
+        }
+
+        .btn-save:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-cancel {
+            background-color: #dc3545;
+        }
+
+        .btn-cancel:hover {
+            background-color: #a71d2a;
+        }
+
+        .btn-run {
+            background-color: #28a745;
+        }
+
+        .btn-run:hover {
+            background-color: #1e7e34;
+        }
+
+        .template-select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 8px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .form-group label {
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input[type="datetime-local"] {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        a.btn {
+            display: inline-block;
+            margin: 0 15px;
+            padding: 10px 20px;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+
+    </style>
+</head>
+<body>
+<div class="container">
+<form method="post">
+{% csrf_token %}
+    <h2>Создание задачи</h2>
+
+    <div class="block">
+        <label>Количество подписчиков</label>
+        <input type="number"  min={{ task.subscribers_count }}
+                {% if task %}value={{ task.subscribers_count }}{% endif %} name="subscribers_count">
+    </div>
+
+    <div class="block">
+        <label for="channelLink">Ссылка на канал</label>
+        <input type="url" id="channelLink" name="channel_link" {% if task and task.channel_link %}value={{ task.channel_link }}{% else %}value="https://exsample.com"{% endif %}
+               placeholder="https://t.me/yourchannel">
+    </div>
+    {% if task and not task.is_active %}
+        <div class="form-group">
+            <label for="templateSelect">Выберите шаблон задачи:</label>
+            <select id="templateSelect" name="template" class="template-select">
+                <option value="">Без шаблона</option>
+                {% for template in request.user.templates.all %}
+                    <option value={{ template.id }}>{{ template.name }}</option>
+                {% endfor %}
+                <!-- Можешь подгрузить это из JS позже -->
+            </select>
+        </div>
+    {% endif %}
+    {% if task and not task.is_active %}
+        <div class="form-group">
+            <label for="startDateTime">Дата и время начала работы:</label>
+            <input type="datetime-local" id="startDateTime" value={{ task.date_str }} name="start_time">
+        </div>
+    {% endif %}
+
+    <div class="block">
+        <button type="button" onclick="toggleBlock('subscribersBlock')">Подписчики</button>
+        <button type="button" onclick="toggleBlock('viewsBlock')">Просмотры</button>
+        <button type="button" onclick="toggleBlock('reactionsBlock')">Реакции</button>
+        <button type="button" onclick="toggleBlock('adPostsBlock')">Рекламные посты</button>
+        <button type="button" onclick="toggleBlock('historyBlock')">История</button>
+        <button type="button" onclick="toggleBlock('commentsBlock')">Комментарии</button>
+        <button type="button" onclick="toggleBlock('targetActionBlock')">Целевое действие</button>
+    </div>
+
+    <!-- Подписчики -->
+    <div id="subscribersBlock" class="block hidden">
+        <label>Соотношение полов</label>
+        <div class="gender-inputs">
+            М: <input type="number" id="male" name="male" min="0" max="100"
+                      value={% if task  and task.subscribe %}{{ task.subscribe.male }}{% else %}"0"{% endif %}>
+            Ж: <input type="number" id="female" name="female" min="0" max="100"
+                      value={% if task  and task.subscribe %}{{ task.subscribe.female }}{% else %}"0"{% endif %}>
+        </div>
+        <small id="genderWarning" class="hidden">Сумма не должна превышать 100</small>
+
+        <h3>Лесенка с привязкой к старту</h3>
+        <div class="sub-block">
+            <label>Формат</label>
+            <select id="viewsStartMode" name="start_ladder_type">
+                <option value="percent"
+                        {% if task and task.subscribe.start_ladder and task.subscribe.start_ladder.is_percent %}selected{% endif %}>
+                    В процентах
+                </option>
+                <option value="amount"
+                        {% if task and task.subscribe.start_ladder and not task.subscribe.start_ladder.is_percent %}selected{% endif %}>
+                    В количестве
+                </option>
+            </select>
+            <input type="text" id="viewsStartInput" name="start_ladder_param" placeholder="Введите значение"
+                   {% if task and task.subscribe.start_ladder %}value={{ task.subscribe.start_ladder.param }} {% endif %}>
+        </div>
+
+        <h3>Лесенка с привязкой ко времени</h3>
+        <div class="sub-block">
+            <label>Формат</label>
+            <select id="viewsStartMode" name="time_ladder_type">
+                <option value="percent"
+                        {% if task and task.subscribe.time_ladder and task.subscribe.time_ladder.is_percent %}selected{% endif %}>
+                    В процентах
+                </option>
+                <option value="amount"
+                        {% if task and task.subscribe.time_ladder and not task.subscribe.time_ladder.is_percent %}selected{% endif %}>
+                    В количестве
+                </option>
+            </select>
+            <input type="text" id="viewsStartInput" name="time_ladder_param" placeholder="Введите значение"
+                   {% if task and task.subscribe.time_ladder %}value={{ task.subscribe.time_ladder.param }} {% endif %}>
+        </div>
+
+        <div class="block">
+            <label for="unsubscribes">Отписки</label>
+            <input type="text" id="unsubscribes" name="unsubscribes" min="0"
+                   {% if task and task.subscribe %}value={{ task.subscribe.unsubscribes }} {% endif %}>
+        </div>
+    </div>
+
+    <!-- Просмотры -->
+    <div id="viewsBlock" class="block hidden">
+        <h3>Лесенка с привязкой к старту</h3>
+        <div class="sub-block">
+            <label>Формат</label>
+            <select id="viewsStartMode" name="view_start_ladder_type">
+                <option value="percent"
+                        {% if task and task.view.start_ladder and task.view.start_ladder.is_percent %}selected{% endif %}>
+                    В процентах
+                </option>
+                <option value="amount"
+                        {% if task and  task.view.start_ladder and not task.view.start_ladder.is_percent %}selected{% endif %}>
+                    В количестве
+                </option>
+            </select>
+            <input type="text" id="viewsStartInput" name="view_start_ladder_param" placeholder="Введите значение"
+                   {% if task and task.view.start_ladder and task.view.start_ladder %}value={{ task.view.start_ladder.param }} {% endif %}>
+            <input type="text" id="scatterTime" name="view_start_ladder_spread" placeholder="Разброс"
+            {% if task and task.view.start_ladder and task.view.start_ladder %}value={{ task.view.start_ladder.spread }} {% endif %}>
+        </div>
+
+        <h3>Лесенка с привязкой ко времени</h3>
+        <div class="sub-block">
+            <label>Формат</label>
+            <select id="viewsStartMode" name="view_time_ladder_type">
+                <option value="percent"
+                        {% if task and task.view.time_ladder and task.view.time_ladder.is_percent %}selected{% endif %}>
+                    В процентах
+                </option>
+                <option value="amount"
+                        {% if task and task.view.time_ladder and not task.view.time_ladder.is_percent %}selected{% endif %}>
+                    В количестве
+                </option>
+            </select>
+            <input type="text" id="viewsStartInput" name="view_time_ladder_param" placeholder="Введите значение"
+                   {% if task and task.view.time_ladder %}value={{ task.view.time_ladder.param }} {% endif %}>
+            <input type="text" id="scatterTime" name="view_time_ladder_spread" placeholder="Разброс"
+            {% if task and task.view.start_ladder and task.view.start_ladder %}value={{ task.view.start_ladder.spread }} {% endif %}>
+        </div>
+
+        <div class="block">
+            <label>Охваты в выходные дни</label>
+            <input type="number" min="1" name="holiday"
+                   {% if task and task.view %}value="{{ task.view.holiday }}"{% endif %} max="100">
+        </div>
+
+        <div class="block">
+            <label>На предыдущие посты</label>
+            <input type="text" name="last_post" {% if task and task.view %}value="{{ task.view.last_post }}"{% endif %}
+                   placeholder="Описание охватов на
+                   предыдущие посты">
+        </div>
+
+        <div class="block">
+            <label>На старые посты</label>
+            <input type="number" name="old_post" {% if task and task.view %}value="{{ task.view.old_post }}"{% endif %}
+                   placeholder="Количество постов,
+                   которые будут просмотрены при подписке">
+        </div>
+    </div>
+
+    <!-- Блок Реакции -->
+    <div id="reactionsBlock" class="block hidden">
+        <h3>Реакции</h3>
+
+        <!-- Лесенка с привязкой к старту в процентах -->
+        <div class="sub-block">
+            <label>Лесенка с привязкой к старту (в процентах)</label>
+            <input type="text" placeholder="Введите значение" name="reaction_start_ladder"
+                   {% if task and task.reaction %}value={{ task.reaction.start_ladder.param }}{% endif %}>
+        </div>
+
+        <!-- Основные реакции -->
+        <div class="sub-block">
+            <label>Основные реакции</label>
+            <div class="input-group">
+                <div><input type="text" placeholder="Название реакции" name="reaction_name"
+                            {% if task and task.reaction %}value=
+                                {{ task.reaction.basic_reactions.reactions }}{% endif %}></div>
+                <div><input type="number" min="0" placeholder="Мин. кол-во" name="basic_min_number"
+                            {% if task and task.reaction %}value=
+                                {{ task.reaction.basic_reactions.min_reaction }}{% endif %}></div>
+                <div><input type="number" min="0" placeholder="Макс. кол-во" name="basic_max_number"
+                            {% if task and task.reaction %}value=
+                                {{ task.reaction.basic_reactions.max_reaction }}{% endif %}></div>
+            </div>
+        </div>
+
+        <!-- Реакции из текста -->
+        <div class="sub-block">
+            <label>Реакции из текста</label>
+            <div class="input-group">
+                <div><input type="number" min="1" placeholder="Кол-во типов" name="text_reaction_number"
+                            {% if task and task.reaction %}value=
+                                {{ task.reaction.text_reactions.type_count }}{% endif %}></div>
+                <div><input type="number" min="0" placeholder="Мин. кол-во" name="text_min_number"
+                            {% if task and task.reaction %}value=
+                                {{ task.reaction.text_reactions.min_reaction }}{% endif %}></div>
+                <div><input type="number" min="0" placeholder="Макс. кол-во" name="text_max_number"
+                            {% if task and task.reaction %}value=
+                                {{ task.reaction.text_reactions.max_reaction }}{% endif %}></div>
+            </div>
+        </div>
+
+        <!-- Реакции от пользователей -->
+        <div class="sub-block">
+            <label>Реакции от пользователей</label>
+            <div class="input-group">
+                <div><input type="number" min="1" placeholder="Кол-во типов" name="user_reaction_number"
+                            {% if task and task.reaction %}value=
+                                {{ task.reaction.user_reactions.type_count }}{% endif %}></div>
+                <div><input type="number" min="0" placeholder="Мин. кол-во" name="user_min_number"
+                            {% if task and task.reaction %}value=
+                                {{ task.reaction.user_reactions.min_reaction }}{% endif %}></div>
+                <div><input type="number" min="0" placeholder="Макс. кол-во" name="user_max_number"
+                            {% if task and task.reaction %}value=
+                                {{ task.reaction.user_reactions.max_reaction }}{% endif %}></div>
+            </div>
+        </div>
+
+        <!-- Реакции от ИИ -->
+        <div class="sub-block">
+            <label>Реакции от ИИ</label>
+            <div class="input-group">
+                <div><input type="number" min="1" placeholder="Кол-во типов" name="ai_reaction_number"
+                            {% if task and task.reaction %}value={{ task.reaction.ai_reactions.type_count }}{% endif %}>
+                </div>
+                <div><input type="number" min="0" placeholder="Мин. кол-во" name="ai_min_number"
+                            {% if task and task.reaction %}value=
+                                {{ task.reaction.ai_reactions.min_reaction }}{% endif %}></div>
+                <div><input type="number" min="0" placeholder="Макс. кол-во" name="ai_max_number"
+                            {% if task and task.reaction %}value=
+                                {{ task.reaction.ai_reactions.max_reaction }}{% endif %}></div>
+            </div>
+        </div>
+
+        <!-- Реакции на старые посты -->
+        <div class="sub-block">
+            <label>Реакции на старые посты</label>
+            <input type="number" min="1" placeholder="Кол-во последних постов" name="reaction_old_post"
+                    {% if task and task.reaction %}
+                   value={{ task.reaction.last_post_reaction }}
+                           {% else %}
+                           value="2"
+                    {% endif %}>
+        </div>
+    </div>
+
+    <div id="adPostsBlock" class="block hidden">
+        <h3>Рекламные посты</h3>
+
+        <!-- Определение рекламных постов -->
+        <div class="sub-block">
+            <label>Определение рекламных постов</label>
+            <textarea rows="4" placeholder="Введите описание или критерии" name="ad_detect">{% if task and task.ad %}
+                {{ task.ad.ad_detect }}{% endif %}</textarea>
+        </div>
+
+        <!-- Подписчики -->
+        <div class="sub-block">
+            <label>Подписчики</label>
+            <input type="number" min="0" max="100" placeholder="% аккаунтов, которые подпишутся на рекламу"
+                   name="ad_subscribe_percent"
+                   {% if task and task.ad %}value={{ task.ad.subscribe_percent }}{% endif %}>
+        </div>
+
+        <!-- Просмотры -->
+        <div class="sub-block">
+            <label>Просмотры</label>
+            <input type="text" placeholder="% от подписавшихся на рекламу, которые будут читать контент"
+                   name="ad_start_ladder" {% if task and task.ad %}value={{ task.ad.start_ladder }}{% endif %}>
+            <small>Лесенка по старту (по умолчанию): 5/10; 4/35; 3/45; 6/150;13/280; 11/390; 28/1440; 22/2880;
+                8/4740</small>
+        </div>
+
+        <!-- Отписка -->
+        <div class="sub-block">
+            <label>Отписка</label>
+            <input type="text" placeholder="Процент отписок/минуты" name="ad_unsubscribes"
+                   {% if task and task.ad %}value={{ task.ad.unsubscribes }}{% endif %}>
+            <small>Пример: 20/1440; 40/44640 — 20% отпишутся через 24ч, 40% в течение месяца</small>
+        </div>
+
+        <!-- Реакции в рекламируемом канале -->
+        <div class="sub-block">
+            <label>Реакции в рекламируемом канале</label>
+            <input type="number" min="0" max="100" placeholder="% реакций от количества просмотров"
+                   name="ad_channel_reaction" {% if task and task.ad %}value={{ task.ad.channel_reaction }}{% endif %}>
+        </div>
+
+        <!-- Реакции на рекламный пост -->
+        <div class="sub-block">
+            <label>Реакции на рекламный пост</label>
+            <input type="number" min="0" max="100" placeholder="% от общего числа реакций для рекламных постов"
+                   name="ad_reaction" {% if task and task.ad %}value={{ task.ad.ad_reaction }}{% endif %}>
+            <small>Применима только накрутка основных, из текста и от пользователей</small>
+        </div>
+
+        <!-- Комментарии -->
+        <div class="sub-block">
+            <label>Комментарии</label>
+            <input type="number" min="0" placeholder="Количество комментариев под рекламными постами" name="ad_comment"
+                   {% if task and task.ad %}value={{ task.ad.comment }}{% endif %}>
+        </div>
+    </div>
+
+    <div id="historyBlock" class="block hidden">
+        <h3>История</h3>
+
+        <!-- Общее количество просмотров -->
+        <div class="sub-block">
+            <label>Общее количество просмотров</label>
+            <input type="number" id="totalHistoryViews" min="0" placeholder="Введите общее количество просмотров"
+                   name="history_view_count"
+                   {% if task and task.history %}value={{ task.history.view_count }}{% endif %}>
+        </div>
+
+        <!-- Лесенка просмотров -->
+        <div class="sub-block">
+            <label>Лесенка просмотров</label>
+            <input type="text" placeholder="Пример: 20/5; 10/20; 70/60" name="history_view_ladder_param"
+                   {% if task and task.history %}value={{ task.history.view_ladder.param }}{% endif %}>
+            <small>Формат: процент от общего количества просмотров / минуты после выхода поста</small>
+        </div>
+
+        <!-- Разброс просмотров -->
+        <div class="sub-block">
+            <label>Разброс просмотров</label>
+            <input type="text" placeholder="Пример: 10/20" name="history_view_ladder_spread"
+                   {% if task and task.history %}value={{ task.history.view_ladder.spread }}{% endif %}>
+            <small>Формат: -процент/+процент</small>
+        </div>
+
+        <!-- Реакции на истории -->
+        <div class="sub-block">
+            <label>Реакции на истории</label>
+            <input type="number" id="historyReactions" min="0" placeholder="Общее количество реакций"
+                   name="history_reaction_count"
+                   {% if task and task.history %}value={{ task.history.reaction_count }}{% endif %}>
+            <small>Не должно превышать общее количество просмотров</small>
+            <div id="reactionWarning" style="color: red; display: none;">Реакции не могут превышать количество
+                просмотров!
+            </div>
+        </div>
+
+        <!-- Лесенка реакций -->
+        <div class="sub-block">
+            <label>Лесенка реакций</label>
+            <input type="text" placeholder="Пример: 20/5; 10/20; 70/60" name="history_reaction_ladder_param"
+                   {% if task and task.history %}value={{ task.history.reaction_ladder.param }}{% endif %}>
+            <small>Формат: процент от общего количества реакций / минуты после выхода поста</small>
+        </div>
+
+        <div class="sub-block">
+            <label>Разброс реакций</label>
+            <input type="text" placeholder="Пример: 10/20" name="history_reaction_ladder_spread"
+                   {% if task and task.history %}value={{ task.history.reaction_ladder.spread }}{% endif %}>
+            <small>Формат: -процент/+процент</small>
+        </div>
+    </div>
+
+    <div id="commentsBlock" class="block hidden">
+        <h3>Комментарии</h3>
+
+        <!-- Минимальное количество комментариев -->
+        <div class="sub-block">
+            <label>Минимальное количество комментариев</label>
+            <input type="number" min="0" placeholder="Введите минимум" name="min_comment"
+                    {% if task and task.comment %}value={{ task.comment.min_comment }}{% endif %}>
+        </div>
+
+        <!-- Максимальное количество комментариев -->
+        <div class="sub-block">
+            <label>Максимальное количество комментариев</label>
+            <input type="number" min="0" placeholder="Введите максимум" name="max_comment"
+                    {% if task and task.comment %}value={{ task.comment.max_comment }}{% endif %}>
+        </div>
+
+        <!-- Лесенка для комментариев -->
+        <div class="sub-block">
+            <label>Лесенка для комментариев</label>
+            <input type="text" placeholder="Пример: 20/5; 10/20; 70/60" name="ladder"
+                    {% if task and task.comment %}value={{ task.comment.ladder }}{% endif %}>
+            <small>Формат: процент от общего количества комментариев / минуты после выхода поста</small>
+        </div>
+
+        <!-- Автоматическая модерация комментариев -->
+        <div class="sub-block">
+            <label>Автоматическая модерация комментариев</label>
+            <input type="number" min="0" placeholder="Введите минуты" name="auto_moderation"
+                    {% if task and task.comment %}value={{ task.comment.auto_moderation }}{% endif %}>
+            <small>Отправьте боту время в минутах. Если за это время комментарии не будут проверены модерацией, то они
+                будут опубликованы без проверки</small>
+        </div>
+    </div>
+
+    <div id="targetActionBlock" class="block hidden">
+        <h3>Целевые действия</h3>
+
+
+        <div class="sub-block" style="margin-top: 30px;">
+            <button onclick="toggleTargetList()" class="btn">Показать/Скрыть список целевых действий</button>
+            <div id="targetActionList" class="hidden" style="margin-top: 10px; border: 1px solid #ccc; padding: 10px;">
+                {% if task %}
+                    {% for action in task.action.all %}
+                        <ul id="targetActionsUl">https://www.google.com/ 10% 10мин бот
+                            <button><a href="#" class="btn">Удалить</a></button>
+                        </ul>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="sub-block">
+            <label>Ссылка на канал/бота</label>
+            <input type="number" id="delayMinutes" min="0" name="action_link" placeholder="Введите задержку в минутах">
+            <small>Отправь ссылку на бота/канал</small>
+        </div>
+
+        <!-- Задержка -->
+        <div class="sub-block">
+            <label>Задержка для прохождения проверки (в минутах)</label>
+            <input type="number" id="delayMinutes" min="0" name="action_delay" placeholder="Введите задержку в минутах">
+            <small>Отправь задержку для прохождения проверки в минутах</small>
+        </div>
+
+        <!-- Процент прохождения -->
+        <div class="sub-block">
+            <label>Процент прохождения целевого действия</label>
+            <input type="number" id="targetPercent" min="1" max="100" name="action_percent"
+                   placeholder="Введите процент">
+            <small>Введи % прохождения целевого действия (от 1 до 100)</small>
+        </div>
+
+        <!-- Тип действия -->
+        <div class="sub-block">
+            <label>Тип целевого действия</label>
+            <select id="targetTypeSelect" name="action_is_channel" onchange="handleTargetTypeChange()">
+                <option value="">Выберите тип</option>
+                <option value="bot" selected>Бот</option>
+                <option value="channel">Канал</option>
+            </select>
+        </div>
+
+        <!-- Параметры для Бота -->
+        <div id="botOptions" class="sub-block hidden">
+            <label>Выбор формата проверки</label>
+            <select id="botCheckTypeSelect" name="action_is_smile" onchange="handleBotCheckTypeChange()">
+                <option value="">Выберите формат</option>
+                <option value="emoji">Тест через смайлик</option>
+                <option value="message">Тест через сообщение</option>
+            </select>
+
+            <div id="messageCheckField" class="sub-block hidden">
+                <label>Сообщение из кнопки</label>
+                <input type="text" id="botCheckMessage" name="action_text" placeholder="✅ Я не робот">
+                <small>Введите сообщение из кнопки для прохождения проверки на бота</small>
+            </div>
+        </div>
+
+        <!-- Кнопка добавления -->
+        <div class="sub-block" style="margin-top: 20px;">
+            <button type="submit" class="btn btn-save">Добавить целевое действие</button>
+        </div>
+    </div>
+
+
+    <div class="button-group-container">
+        <div class="button-group">
+            <button type="submit" class="btn btn-save">Сохранить задачу</button>
+
+            {% if task.is_active %}
+                <button class="btn btn-cancel"><a class="btn" href={% url "task_list" %}>Отменить изменение</a></button>
+                <button type="submit" class="btn btn-cancel" name="delete">Удалить задачу</button>
+            {% else %}
+                <button type="submit" class="btn btn-cancel" name="delete">Отменить создание</button>{% endif %}
+            {% if not task.is_active and task.channel_link and task.subscribers_count != 0 %}
+                <button type="submit" name="start" class="btn btn-run">Запустить задачу</button>{% endif %}
+        </div>
+    </div>
+
+</form>
+</div>
+
+<script>
+
+    function toggleTargetList() {
+        document.getElementById('targetActionList').classList.toggle('hidden');
+    }
+
+    function toggleBlock(id) {
+        document.querySelectorAll('.block').forEach(block => {
+            if (block.id && block.id.endsWith('Block') && block.id !== id) {
+                block.classList.add('hidden');
+            }
+        });
+        document.getElementById(id).classList.toggle('hidden');
+    }
+
+    const maleInput = document.getElementById("male");
+    const femaleInput = document.getElementById("female");
+    const warning = document.getElementById("genderWarning");
+
+    function validateGenderSum() {
+        const total = parseInt(maleInput.value || 0) + parseInt(femaleInput.value || 0);
+        warning.classList.toggle("hidden", total <= 100);
+    }
+
+    maleInput.addEventListener("input", validateGenderSum);
+    femaleInput.addEventListener("input", validateGenderSum);
+
+    function toggleScatter(inputId, scatterId) {
+        const input = document.getElementById(inputId);
+        const scatter = document.getElementById(scatterId);
+        input.addEventListener("input", () => {
+            scatter.disabled = input.value === "";
+        });
+    }
+
+    toggleScatter("viewsStartInput", "scatterStart");
+    toggleScatter("viewsTimeInput", "scatterTime");
+    const historyViewsInput = document.getElementById("totalHistoryViews");
+    const historyReactionsInput = document.getElementById("historyReactions");
+    const reactionWarning = document.getElementById("reactionWarning");
+
+    function validateHistoryReactions() {
+        const views = parseInt(historyViewsInput.value || 0);
+        const reactions = parseInt(historyReactionsInput.value || 0);
+        if (reactions > views) {
+            reactionWarning.style.display = "block";
+        } else {
+            reactionWarning.style.display = "none";
+        }
+    }
+
+    function handleTargetTypeChange() {
+        const type = document.getElementById('targetTypeSelect').value;
+        const botOptions = document.getElementById('botOptions');
+
+        if (type === 'bot') {
+            botOptions.classList.remove('hidden');
+        } else {
+            botOptions.classList.add('hidden');
+            document.getElementById('messageCheckField').classList.add('hidden');
+        }
+    }
+
+    function handleBotCheckTypeChange() {
+        const checkType = document.getElementById('botCheckTypeSelect').value;
+        const messageField = document.getElementById('messageCheckField');
+
+        if (checkType === 'message') {
+            messageField.classList.remove('hidden');
+        } else {
+            messageField.classList.add('hidden');
+        }
+    }
+
+    historyViewsInput.addEventListener("input", validateHistoryReactions);
+    historyReactionsInput.addEventListener("input", validateHistoryReactions);
+</script>
+</body>
+</html>
