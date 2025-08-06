@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Форма ввода данных</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f8f9fa;
+            margin: 0;
+            display: flex;
+            justify-content: flex-start;
+            align-items: flex-start;
+            height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            width: 90%;
+            margin-top: 30px;
+            display: flex;
+            justify-content: flex-start;
+            position: relative;
+        }
+
+        .sidebar {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: #ffffff;
+            padding: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            text-align: center;
+            width: 180px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            height: auto;
+        }
+
+        .sidebar button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            background-color: #007bff;
+            color: white;
+        }
+
+        .sidebar button:hover {
+            background-color: #0056b3;
+        }
+
+        .exit-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #ff4d4d;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .exit-btn:hover {
+            background-color: #d9534f;
+        }
+
+        .exit-btn img {
+            width: 20px;
+            height: 20px;
+        }
+
+        .tasks-list {
+            margin-left: 210px;
+            width: calc(100% - 240px);
+            background: white;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            height: auto;
+        }
+
+        .tasks-list h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        /* Стили для формы */
+        .form-container {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="password"],
+        .form-group input[type="file"],
+        .form-group input[type="tel"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .required:after {
+            content: " *";
+            color: red;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 25px;
+        }
+
+        .form-actions button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-left: 10px;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #218838;
+        }
+
+        .error-message {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .success-message {
+            color: #28a745;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        #codeFieldGroup {
+            display: none;
+        }
+
+
+        .top-buttons {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            position: relative;
+            top: 10px;
+            left: 0;
+        }
+
+        .top-buttons button {
+            margin: 0 15px;
+            padding: 5px 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .top-buttons button:hover {
+            background-color: #0056b3;
+        }
+
+        a.btn {
+            display: inline-block;
+            margin: 0 15px;
+            padding: 10px 20px;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+
+    <div class="exit-btn">
+        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTkgMjFINGEyIDIgMCAwIDEtMi0ydi0xNGEyIDIgMCAwIDEgMi0yaDUiLz48cGF0aCBkPSJNMTYgMTdsNS01LTUtNSIvPjxwYXRoIGQ9Ik0yMSAxMkg5Ii8+PC9zdmc+"
+             alt="Exit">
+    </div>
+
+    <div class="tasks-list">
+        <div class="top-buttons">
+            <button><a href="{% url "task_detail" %}" class="btn">Создать задачу</a></button>
+            <button><a href="{% url "template_detail" %}" class="btn">Создать шаблон</a></button>
+            <button><a href="{% url "template_list" %}" class="btn">Список шаблонов</a></button>
+            <button><a href="{% url "add_session" %}" class="btn">Добавить аккаунт</a></button>
+            <button><a href="{% url "comments" %}" class="btn">Комментарии</a></button>
+        </div>
+        <h2>Добавление сессии</h2>
+
+        <div class="form-container">
+            <form id="sessionForm" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label class="required">Пол</label>
+                    <div class="gender-options">
+                        <label>
+                            <input type="radio" name="gender" value="male" required checked> Мужчина <input type="radio" name="gender" required value="female"> Женщина
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="fileInput">Файл сессии (.session)</label>
+                    <input type="file" id="fileInput" name="session_file" accept=".session">
+                    <div class="error-message" id="fileError">Файл должен иметь расширение .session</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="phoneInput">Номер телефона</label>
+                    <input type="tel" name="phone" id="phoneInput" placeholder="+79991234567">
+                </div>
+
+                <div class="form-group">
+                    <label for="apiIdInput">API ID</label>
+                    <input type="text" name="api_id" id="apiIdInput" placeholder="Введите API ID">
+                </div>
+
+                <div class="form-group">
+                    <label for="apiIdInput">API HASH</label>
+                    <input type="text" name="api_hash" id="apiHashInput" placeholder="Введите API HASH">
+                </div>
+
+                <div class="form-group">
+                    <label for="donorIdInput" class="required">ID донора</label>
+                    <input type="text" name="donor_id" id="donorIdInput" required placeholder="Введите ID донора">
+                    <div class="error-message" id="donorIdError">Это поле обязательно для заполнения</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="passwordInput">Пароль</label>
+                    <input type="password" name="password" id="passwordInput" placeholder="Введите пароль">
+                </div>
+
+                <div id="codeFieldGroup" class="form-group">
+                    <label for="telegramCode" class="required">6. Код из Telegram</label>
+                    <input type="text" name="code" id="telegramCode" placeholder="Введите код из Telegram">
+                    <div class="error-message" id="codeError">Это поле обязательно для заполнения</div>
+                    <div class="success-message" id="codeSuccess">Код отправлен! Проверьте Telegram</div>
+                </div>
+
+                <div class="error-message" id="formError">Заполните либо поля 1 и 4, либо поля 2, 3 и 4</div>
+
+                <div class="form-actions">
+                    <button type="button" id="getCodeBtn" class="btn-primary" style="display: none;">Получить код
+                    </button>
+                    <button type="submit" id="addSessionBtn" class="btn-success" style="display: none;">Добавить
+                        сессию
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const fileInput = document.getElementById('fileInput');
+        const phoneInput = document.getElementById('phoneInput');
+        const apiIdInput = document.getElementById('apiIdInput');
+        const donorIdInput = document.getElementById('donorIdInput');
+        const passwordInput = document.getElementById('passwordInput');
+        const telegramCode = document.getElementById('telegramCode');
+        const getCodeBtn = document.getElementById('getCodeBtn');
+        const addSessionBtn = document.getElementById('addSessionBtn');
+        const formError = document.getElementById('formError');
+        const donorIdError = document.getElementById('donorIdError');
+        const fileError = document.getElementById('fileError');
+        const codeError = document.getElementById('codeError');
+        const codeSuccess = document.getElementById('codeSuccess');
+        const codeFieldGroup = document.getElementById('codeFieldGroup');
+
+        function validateFileExtension(file) {
+            if (!file) return false;
+            const fileName = file.name;
+            const fileExt = fileName.split('.').pop().toLowerCase();
+            return fileExt === 'session';
+        }
+
+        function validateForm() {
+            const fileFilled = fileInput.files.length > 0 && validateFileExtension(fileInput.files[0]);
+            const phoneFilled = phoneInput.value.trim() !== '';
+            const apiIdFilled = apiIdInput.value.trim() !== '';
+            const donorIdFilled = donorIdInput.value.trim() !== '';
+            const codeFilled = telegramCode.value.trim() !== '';
+
+            // Скрываем все ошибки сначала
+            formError.style.display = 'none';
+            donorIdError.style.display = 'none';
+            fileError.style.display = 'none';
+            codeError.style.display = 'none';
+
+            // Проверяем обязательное поле ID донора
+            if (!donorIdFilled) {
+                donorIdError.style.display = 'block';
+                getCodeBtn.style.display = 'none';
+                addSessionBtn.style.display = 'none';
+                return;
+            }
+
+            // Проверяем расширение файла, если он загружен
+            if (fileInput.files.length > 0 && !validateFileExtension(fileInput.files[0])) {
+                fileError.style.display = 'block';
+                getCodeBtn.style.display = 'none';
+                addSessionBtn.style.display = 'none';
+                return;
+            }
+
+            // Если код уже запрошен, проверяем его наличие
+            if (codeFieldGroup.style.display === 'block' && !codeFilled) {
+                codeError.style.display = 'block';
+                addSessionBtn.style.display = 'none';
+                return;
+            }
+
+            // Проверяем два возможных варианта заполнения
+            if ((fileFilled) || (phoneFilled && apiIdFilled)) {
+                formError.style.display = 'none';
+
+                // Показываем соответствующую кнопку
+                if (fileFilled) {
+                    addSessionBtn.style.display = 'block';
+                    getCodeBtn.style.display = 'none';
+                } else if (phoneFilled && apiIdFilled) {
+                    getCodeBtn.style.display = 'block';
+                    // Если код уже введен, показываем кнопку добавления
+                    if (codeFilled) {
+                        addSessionBtn.style.display = 'block';
+                    } else {
+                        addSessionBtn.style.display = 'none';
+                    }
+                }
+            } else {
+                formError.style.display = 'block';
+                getCodeBtn.style.display = 'none';
+                addSessionBtn.style.display = 'none';
+            }
+        }
+
+        // Слушаем изменения во всех полях
+        fileInput.addEventListener('change', validateForm);
+        phoneInput.addEventListener('input', validateForm);
+        apiIdInput.addEventListener('input', validateForm);
+        donorIdInput.addEventListener('input', validateForm);
+        passwordInput.addEventListener('input', validateForm);
+        telegramCode.addEventListener('input', validateForm);
+
+        // Обработчик кнопки "Получить код"
+        getCodeBtn.addEventListener('click', function () {
+            // Собираем данные для отправки (теперь только phone, api_id и api_hash)
+            const formData = {
+                phone: phoneInput.value.trim(),
+                api_id: apiIdInput.value.trim(),
+                api_hash: apiHashInput.value.trim() // Используем поле пароля как api_hash
+            };
+
+            // Отправляем POST-запрос
+            fetch('{% url 'get_code' %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Ошибка сети');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Показываем поле для ввода кода
+                    codeFieldGroup.style.display = 'block';
+                    codeSuccess.style.display = 'block';
+                    codeError.style.display = 'none';
+
+                    // Создаём скрытое поле для phone_code_hash, если его ещё нет
+                    let phoneCodeHashInput = document.getElementById('phone_code_hash');
+                    if (!phoneCodeHashInput) {
+                        phoneCodeHashInput = document.createElement('input');
+                        phoneCodeHashInput.type = 'hidden';
+                        phoneCodeHashInput.id = 'phone_code_hash';
+                        phoneCodeHashInput.name = 'phone_code_hash';
+                        document.getElementById('sessionForm').appendChild(phoneCodeHashInput);
+                    }
+
+                    // Устанавливаем значение из ответа сервера
+                    phoneCodeHashInput.value = data.phone_code_hash;
+
+                    // Обновляем валидацию формы
+                    validateForm();
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                    codeError.textContent = 'Ошибка при отправке запроса: ' + error.message;
+                    codeError.style.display = 'block';
+                });
+        });
+    });
+</script>
+</body>
+</html>

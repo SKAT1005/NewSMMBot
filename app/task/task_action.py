@@ -1,5 +1,12 @@
+import random
+from datetime import datetime, timedelta
+
+from django.db import models
+from django.db.models import Count
+from django.utils import timezone
+
 from app.models import Template, Ladder, SubscribeParam, ViewParam, ReactionParam, Reaction, AdParam, HistoryParam, \
-    CommentParam, Action, Task
+    CommentParam, Action, Task, Sessions, SubscribeTask, UnsubscribeTask
 
 
 def create_ladder(is_percent, param, spread=None):
@@ -348,3 +355,121 @@ def change_template(template: Template, data_post):
                    data_post['history_reaction_ladder_spread'])
     change_comment(template, data_post['min_comment'], data_post['max_comment'], data_post['ladder'],
                    data_post['auto_moderation'])
+
+
+def add_session_in_task(task):
+    total_sessions = Sessions.objects.count()
+
+    # Корректируем количество подписчиков, если нужно
+    if task.subscribers_count > total_sessions:
+        task.subscribers_count = total_sessions
+        task.save(update_fields=['subscribers_count'])
+
+    subscribe_param = task.subscribe
+    total_needed = task.subscribers_count
+
+    # Рассчитываем количество мужских и женских сессий
+    male_count = total_needed * subscribe_param.male // 100
+    female_count = total_needed * subscribe_param.female // 100
+
+    # Корректируем остаток
+    remainder = total_needed - male_count - female_count
+    if remainder != 0:
+        if male_count:
+            male_count += remainder
+        else:
+            female_count += remainder
+
+    # Получаем количество доступных сессий каждого пола за один запрос
+    gender_counts = Sessions.objects.aggregate(
+        male_count=Count('pk', filter=models.Q(is_male=True)),
+        female_count=Count('pk', filter=models.Q(is_male=False))
+    )
+    available_male = gender_counts['male_count']
+    available_female = gender_counts['female_count']
+
+    # Корректируем распределение, если нужно
+    if male_count > available_male:
+        female_count += male_count - available_male
+        male_count = available_male
+
+    if female_count > available_female:
+        male_count += female_count - available_female
+        female_count = available_female
+
+    if male_count + female_count == total_sessions:
+        task.sessions.set(Sessions.objects.all())
+        return
+
+    need_sessions = []
+
+    if female_count > 0:
+        female_sessions = list(Sessions.objects.filter(is_male=False).values_list('id', flat=True))
+        selected_female = random.sample(female_sessions, min(female_count, len(female_sessions)))
+        need_sessions.extend(selected_female)
+
+    if male_count > 0:
+        male_sessions = list(Sessions.objects.filter(is_male=True).values_list('id', flat=True))
+        selected_male = random.sample(male_sessions, min(male_count, len(male_sessions)))
+        need_sessions.extend(selected_male)
+
+    task.sessions.add(*need_sessions)
+
+
+def create_subscribe_task(task: Task):
+    add_session_in_task(task)
+    subscribe_param = task.subscribe
+    all_sessions = list(task.sessions.all())
+    unsubscribe_persent, unsubscribe_time = map(int, subscribe_param.unsubscribes.split('/'))
+    unsubscribe_list = all_sessions[:len(all_sessions)*unsubscribe_persent//100]
+    start_ladders = []
+    time_ladders = []
+    if subscribe_param.start_ladder:
+        if subscribe_param.start_ladder.is_percent:
+            start_ladders = [[task.subscribers_count * int(i.split('/')[0]) // 100, int(i.split('/')[1]) * 60] for i in
+                            subscribe_param.start_ladder.param.split('; ')]
+        else:
+            start_ladders = [list(map(int, i.split('/'))) for i in subscribe_param.start_ladder.param.split('; ')]
+    if subscribe_param.time_ladder:
+        if subscribe_param.time_ladder.is_percent:
+            time_ladders = [[task.subscribers_count * int(i.split('/')[0]) // 100, i.split('/')[1]] for i in
+                           subscribe_param.time_ladder.param.split('; ')]
+        else:
+            time_ladders = [[int(i.split('/')[0]), i.split('/')[1]] for i in
+                           subscribe_param.time_ladder.param.split('; ')]
+    for start_ladder in start_ladders:
+        need_sessions = all_sessions[:start_ladder[0]]
+        all_sessions = all_sessions[start_ladder[0]:]
+        sleep_time = start_ladder[1] / len(need_sessions) if need_sessions else 0
+        subscribe_task = SubscribeTask.objects.create(
+                task=task,
+                next_action=task.start_time,
+                sleep_time=sleep_time
+        )
+        subscribe_task.sessions.add(*need_sessions)
+    for time_ladder in time_ladders:
+        today = datetime.now().date()
+        need_sessions = all_sessions[:time_ladder[0]]
+        all_sessions = all_sessions[time_ladder[0]:]
+        start_str, end_str = time_ladder[1].split('-')
+        start_time = datetime.strptime(start_str, "%H:%M").time()
+        end_time = datetime.strptime(end_str, "%H:%M").time()
+        start_datetime = datetime.combine(today, start_time)
+        end_datetime = datetime.combine(today, end_time)
+        sleep_time = (end_datetime.timestamp() - start_datetime.timestamp()) / len(need_sessions)
+        if datetime.now() > start_datetime:
+            start_datetime += timedelta(days=1)
+        subscribe_task = SubscribeTask.objects.create(
+            task=task,
+            next_action=task.start_time,
+            sleep_time=sleep_time
+        )
+        subscribe_task.sessions.add(*need_sessions)
+    if unsubscribe_list:
+        unsubscribe_task = UnsubscribeTask.objects.create(
+            task=task,
+            next_action=timezone.now()+timedelta(minutes=unsubscribe_time)
+        )
+        unsubscribe_task.sessions.add(*unsubscribe_list)
+
+

@@ -198,15 +198,20 @@
 <div class="container">
     <!-- Кнопка выхода справа -->
     <div class="exit-btn">
-        <a href="{% url "logout" %}"><img src="https://img.icons8.com/ios-filled/50/ffffff/exit.png" alt="Выход"/></a>
+        <a href="{% url "logout" %}">
+            <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTkgMjFINGEyIDIgMCAwIDEtMi0ydi0xNGEyIDIgMCAwIDEgMi0yaDUiLz48cGF0aCBkPSJNMTYgMTdsNS01LTUtNSIvPjxwYXRoIGQ9Ik0yMSAxMkg5Ii8+PC9zdmc+" alt="Exit">
+
+        </a>
     </div>
 
     <div class="tasks-list">
         <div class="top-buttons">
-        <button><a href="{% url "task_detail" %}" class="btn">Создать задачу</a></button>
-        <button><a href="{% url "template_detail" %}" class="btn">Создать шаблон</a></button>
-        <button><a href="{% url "template_list"%}" class="btn">Список шаблонов</a></button>
-    </div>
+            <button><a href="{% url "task_detail" %}" class="btn">Создать задачу</a></button>
+            <button><a href="{% url "template_detail" %}" class="btn">Создать шаблон</a></button>
+            <button><a href="{% url "template_list" %}" class="btn">Список шаблонов</a></button>
+            <button><a href="{% url "add_session" %}" class="btn">Добавить аккаунт</a></button>
+            <button><a href="{% url "comments" %}" class="btn">Комментарии</a></button>
+        </div>
         <br>
 
         <h2>Список задач</h2>

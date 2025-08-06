@@ -4,7 +4,13 @@ from django.utils import timezone
 
 
 class Sessions(models.Model):
-    pass
+    phone = models.CharField(max_length=128, blank=True, null=True, verbose_name='Номер телефона')
+    is_male = models.BooleanField(verbose_name='Пол пользователя')
+    api_id = models.CharField(max_length=128, blank=True, null=True, verbose_name='api id')
+    api_hash = models.CharField(max_length=128, blank=True, null=True, verbose_name='api hash ')
+    donor_id = models.CharField(max_length=128, blank=True, null=True, verbose_name='id донора')
+    password = models.CharField(max_length=128, blank=True, null=True, verbose_name='2FA пароль')
+    file = models.FileField(upload_to='sessions', verbose_name='Файл сессии')
 
 
 class Ladder(models.Model):
@@ -47,13 +53,17 @@ class Reaction(models.Model):
 class ReactionParam(models.Model):
     start_ladder = models.OneToOneField('Ladder', on_delete=models.CASCADE, null=True, blank=True,
                                         verbose_name='Лесенка к старту')
-    basic_reactions = models.OneToOneField('Reaction', on_delete=models.CASCADE, null=True, blank=True,related_name='basic_reactions',
+    basic_reactions = models.OneToOneField('Reaction', on_delete=models.CASCADE, null=True, blank=True,
+                                           related_name='basic_reactions',
                                            verbose_name='Основные реакции')
-    text_reactions = models.OneToOneField('Reaction', on_delete=models.CASCADE, null=True, blank=True,related_name='text_reactions',
+    text_reactions = models.OneToOneField('Reaction', on_delete=models.CASCADE, null=True, blank=True,
+                                          related_name='text_reactions',
                                           verbose_name='Реакции из текста')
-    user_reactions = models.OneToOneField('Reaction', on_delete=models.CASCADE, null=True, blank=True,related_name='user_reactions',
+    user_reactions = models.OneToOneField('Reaction', on_delete=models.CASCADE, null=True, blank=True,
+                                          related_name='user_reactions',
                                           verbose_name='Реакции от пользователей')
-    ai_reactions = models.OneToOneField('Reaction', on_delete=models.CASCADE, null=True, blank=True,related_name='ai_reactions',
+    ai_reactions = models.OneToOneField('Reaction', on_delete=models.CASCADE, null=True, blank=True,
+                                        related_name='ai_reactions',
                                         verbose_name='Реакции от ИИ')
     last_post_reaction = models.IntegerField(default=2, verbose_name='На сколько старых постов будут ставиться реакции')
 
@@ -105,9 +115,10 @@ class Task(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tasks',
                              verbose_name='Пользователь, создавший задачу')
     channel_link = models.CharField(max_length=128, blank=True, null=True, verbose_name='Ссылка на канал')
+    channel_id = models.CharField(max_length=128, blank=True, null=True, verbose_name='Id канала')
     sessions = models.ManyToManyField('Sessions', blank=True, verbose_name='Сессии')
     start_time = models.DateTimeField(default=timezone.now)
-    subscribers_count = models.IntegerField(default=0, verbose_name='Кольчество аккаунтов')
+    subscribers_count = models.IntegerField(default=0, verbose_name='Количество аккаунтов')
     subscribe = models.ForeignKey('SubscribeParam', on_delete=models.CASCADE, related_name='task_subscribe', null=True,
                                   blank=True,
                                   verbose_name='tasks_for_subscribe')
@@ -127,11 +138,14 @@ class Task(models.Model):
     voting = models.ForeignKey('VotingParam', on_delete=models.CASCADE, related_name='task_voting', blank=True,
                                null=True,
                                verbose_name='tasks_for_voting')
-    action = models.ManyToManyField('SubscribeParam', blank=True,
-                                    verbose_name='tasks_for_ad')
+    action = models.ManyToManyField('Action', blank=True,
+                                    verbose_name='tasks_for_action')
 
     is_active = models.BooleanField(default=False, verbose_name='Активна ли')
-
+    is_start_parse_messages = models.BooleanField(default=False, verbose_name='Начался ли парсинг сообщений')
+    is_start_parse_history = models.BooleanField(default=False, verbose_name='Начался ли парсинг историй')
+    last_post_id = models.IntegerField(blank=True, null=True, verbose_name='Id последнего поста')
+    last_story_id = models.IntegerField(blank=True, null=True, verbose_name='Id последней истории')
 
     def date_str(self):
         dt = self.start_time
@@ -163,3 +177,85 @@ class Template(models.Model):
     voting = models.ForeignKey('VotingParam', on_delete=models.CASCADE, related_name='template_voting', blank=True,
                                null=True,
                                verbose_name='tasks_for_voting')
+
+class HistoryReactionTask(models.Model):
+    is_start = models.BooleanField(default=False, verbose_name='Запущена ли задача')
+    story_id = models.IntegerField(verbose_name='Id поста, на который ставим реакции')
+    task = models.ForeignKey('Task', related_name='history_reaction_tasks', on_delete=models.CASCADE,
+                             verbose_name='Задача, к которой относятся задания на подписку')
+    sessions = models.ManyToManyField('Sessions', blank=True, verbose_name='Пользователи, выполняющие задачу')
+    sleep_time = models.IntegerField(default=1, verbose_name='')
+
+class HistoryViewTask(models.Model):
+    is_start = models.BooleanField(default=False, verbose_name='Запущена ли задача')
+    story_id = models.IntegerField(verbose_name='Id поста, на который ставим реакции')
+    task = models.ForeignKey('Task', related_name='history_view_tasks', on_delete=models.CASCADE,
+                             verbose_name='Задача, к которой относятся задания на подписку')
+    sessions = models.ManyToManyField('Sessions', blank=True, verbose_name='Пользователи, выполняющие задачу')
+    sleep_time = models.IntegerField(default=1, verbose_name='')
+class Comment(models.Model):
+    is_check = models.BooleanField(default=False)
+    post_text = models.TextField(verbose_name='Текст поста')
+    task = models.ForeignKey('Task', related_name='comments', on_delete=models.CASCADE,
+                             verbose_name='Задача, к которой относятся комментарии')
+    message_id = models.IntegerField(verbose_name='Id поста, на который ставим реакции')
+    session = models.ForeignKey('Sessions', on_delete=models.CASCADE, related_name='comment_tasks_for_session',
+                                verbose_name='Пользователь, выполняющий задачу')
+    comment = models.TextField(verbose_name='Комментарий')
+    end_check = models.DateTimeField(verbose_name='Время когда автоматически принимается комментарий')
+
+
+class CommentTask(models.Model):
+    is_start = models.BooleanField(default=False, verbose_name='Запущена ли задача')
+    message_id = models.IntegerField(verbose_name='Id поста, на который ставим реакции')
+    task = models.ForeignKey('Task', related_name='comment_tasks', on_delete=models.CASCADE,
+                             verbose_name='Задача, к которой относятся задания на подписку')
+    sessions = models.ManyToManyField('Sessions', blank=True, verbose_name='Пользователи, выполняющие задачу')
+    sleep_time = models.IntegerField(default=1, verbose_name='')
+
+
+class ReactionTask(models.Model):
+    is_start = models.BooleanField(default=False, verbose_name='Запущена ли задача')
+    message_id = models.IntegerField(verbose_name='Id поста, на который ставим реакции')
+    task = models.ForeignKey('Task', related_name='reaction_tasks', on_delete=models.CASCADE,
+                             verbose_name='Задача, к которой относятся задания на подписку')
+    sessions = models.ManyToManyField('Sessions', blank=True, verbose_name='Пользователи, выполняющие задачу')
+    sleep_time = models.IntegerField(default=1, verbose_name='')
+
+
+class ViewTask(models.Model):
+    is_start = models.BooleanField(default=False, verbose_name='Запущена ли задача')
+    message_id = models.IntegerField(verbose_name='Id поста')
+    task = models.ForeignKey('Task', related_name='view_tasks', on_delete=models.CASCADE,
+                             verbose_name='Задача, к которой относятся задания на подписку')
+    sessions = models.ManyToManyField('Sessions', blank=True, verbose_name='Пользователи, выполняющие задачу')
+    sleep_time = models.IntegerField(default=1, verbose_name='')
+
+
+class ActionTask(models.Model):
+    is_start = models.BooleanField(default=False, verbose_name='Запущена ли задача')
+    session = models.ForeignKey('Sessions', on_delete=models.CASCADE, related_name='action_tasks_for_session',
+                                verbose_name='Пользователь, выполняющий задачу')
+    action = models.ForeignKey('Action', on_delete=models.CASCADE, related_name='action_tasks_for_action',
+                               verbose_name='Целевое действие')
+    start_time = models.DateTimeField(verbose_name='Время начала выполнения целевого действия')
+
+
+class UnsubscribeTask(models.Model):
+    is_start = models.BooleanField(default=False, verbose_name='Запущена ли задача')
+    task = models.ForeignKey('Task', related_name='unsubscribe_tasks', on_delete=models.CASCADE,
+                             verbose_name='Задача, к которой относятся задания на подписку')
+    sessions = models.ManyToManyField('Sessions', blank=True, verbose_name='Пользователи, выполняющие задачу')
+    next_action = models.DateTimeField(verbose_name='Время начала отписок')
+    sleep_time = models.FloatField(default=1, verbose_name='Время до следующего действия')
+    unsubscribed_sessions = models.IntegerField(default=0, verbose_name='Сколько пользователей отписалось')
+
+
+class SubscribeTask(models.Model):
+    is_start = models.BooleanField(default=False, verbose_name='Запущена ли задача')
+    task = models.ForeignKey('Task', related_name='subscribe_tasks', on_delete=models.CASCADE,
+                             verbose_name='Задача, к которой относятся задания на подписку')
+    sessions = models.ManyToManyField('Sessions', blank=True, verbose_name='Пользователи, выполняющие задачу')
+    next_action = models.DateTimeField(verbose_name='Время следующего действия')
+    sleep_time = models.FloatField(default=1, verbose_name='Время до следующего действия')
+    subscribed_sessions = models.IntegerField(default=0, verbose_name='Сколько пользователей подписалось')

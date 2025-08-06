@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Task, Template, CommentParam
+from .models import Task, Template, Comment
 
 @admin.register(Task)
 class TaskAdmin(admin.ModelAdmin):
@@ -10,6 +10,6 @@ class TemplateAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(CommentParam)
+@admin.register(Comment)
 class CommentParamAdmin(admin.ModelAdmin):
     pass

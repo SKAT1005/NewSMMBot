@@ -1,11 +1,18 @@
+import asyncio
+import json
+import time
+
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.views import View
+from django.views.decorators.csrf import csrf_exempt
 
-from app.models import Task, Template
+from app.models import Task, Template, Sessions, Comment
 from app.task import task_action
+import telethon
 
 
 def get_post_data(post):
@@ -89,6 +96,7 @@ class TaskDetail(View):
             return redirect('task_list')
         task_action.change_task(task=task, data_post=data_post)
         if 'start' in data_post:
+            task_action.create_subscribe_task(task=task)
             task.is_active = True
             task.save(update_fields=['is_active'])
             return redirect('task_list')
@@ -124,6 +132,89 @@ class TemplateDetail(View):
         return redirect(url)
 
 
+@csrf_exempt
+def get_code(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+
+        # Получаем параметры
+        phone = data.get('phone')
+        api_id = data.get('api_id')
+        api_hash = data.get('api_hash')
+        # Запускаем асинхронный код синхронно
+        async def async_get_code():
+            client = telethon.TelegramClient(f'{phone}', api_id, api_hash,
+                                     system_version="4.16.30-vxCUSTOM")
+            await client.connect()
+
+            try:
+                send_code = await client.send_code_request(phone=phone)
+                phone_code_hash = send_code.phone_code_hash
+                return phone_code_hash
+            except Exception as e:
+                return {"error": str(e)}
+            finally:
+                await client.disconnect()
+
+        # Выполняем асинхронную функцию
+        result = asyncio.run(async_get_code())
+
+        if isinstance(result, dict) and "error" in result:
+            return JsonResponse({"status": "error", "message": result["error"]}, status=400)
+        else:
+            return JsonResponse({"status": "success", "phone_code_hash": result})
+    else:
+        return JsonResponse({"status": "error", "message": "Only POST method is allowed"}, status=405)
+
+class AddSessionView(View):
+    def get(self, request):
+        user = request.user
+        if not user.is_authenticated:
+            return redirect('auth')
+        return render(request, 'add_session.html')
+
+    def post(self, request):
+        file = request.FILES.get('session_file')
+        gender = request.POST.get('gender')
+        phone = request.POST.get('phone')
+        api_id = request.POST.get('api_id')
+        api_hash = request.POST.get('api_hash')
+        donor_id = request.POST.get('donor_id')
+        password = request.POST.get('password')
+        code = request.POST.get('code')
+        phone_code_hash = request.POST.get('phone_code_hash')
+        if gender == 'male':
+            gender = True
+        else:
+            gender = False
+        if not file:
+            async def create_session():
+                session_file = f'sessions/{phone}'
+                client = telethon.TelegramClient(session_file, api_id, api_hash,
+                                                 system_version="4.16.30-vxCUSTOM")
+                await client.connect()
+                try:
+                    await client.sign_in(phone, code, phone_code_hash=phone_code_hash)
+                    return session_file
+                except telethon.errors.SessionPasswordNeededError:
+                    await client.sign_in(password=password)
+                    return session_file
+                finally:
+                    await client.disconnect()
+            file = asyncio.run(create_session())
+        if file:
+            Sessions.objects.create(
+                phone=phone,
+                api_id=api_id,
+                api_hash=api_hash,
+                donor_id=donor_id,
+                password=password,
+                file=file,
+                gender=gender
+            )
+        return render(request, 'add_session.html')
+
+
 def template_list(request):
     user = request.user
     if not user.is_authenticated:
@@ -131,3 +222,35 @@ def template_list(request):
     if request.method == 'GET':
         templates = Template.objects.filter(user=user)
         return render(request, 'template_list.html', context={'templates': templates})
+
+
+
+def comments(request):
+    user = request.user
+    if not user.is_authenticated:
+        return redirect('auth')
+    comments = Comment.objects.filter(task__user=user, is_check=False)
+    return render(request, 'template_list.html', context={'comments': comments})
+
+
+
+def confirm_comment(request):
+    user = request.user
+    if not user.is_authenticated:
+        return redirect('auth')
+    comment_id = request.GET.get('comment_id')
+    comment = Comment.objects.get(id=comment_id)
+    if comment.task.user == user:
+        comment.is_check = True
+        comment.save(update_fields=['is_check'])
+    return redirect('comments')
+
+def cancel_comment(request):
+    user = request.user
+    if not user.is_authenticated:
+        return redirect('auth')
+    comment_id = request.GET.get('comment_id')
+    comment = Comment.objects.get(id=comment_id)
+    if comment.task.user == user:
+        comment.delete()
+    return redirect('comments')
