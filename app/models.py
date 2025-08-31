@@ -11,7 +11,16 @@ class Sessions(models.Model):
     donor_id = models.CharField(max_length=128, blank=True, null=True, verbose_name='id донора')
     password = models.CharField(max_length=128, blank=True, null=True, verbose_name='2FA пароль')
     file = models.FileField(upload_to='sessions', verbose_name='Файл сессии')
+    next_update_photo = models.DateTimeField(verbose_name='Время обновления фотографии')
 
+
+class Donor(models.Model):
+    session = models.OneToOneField('Sessions', on_delete=models.CASCADE, related_name='donor', verbose_name='сессия')
+    photos = models.ManyToManyField('DonorPhoto', verbose_name='Фотографии донора')
+
+class DonorPhoto(models.Model):
+    photo_id = models.CharField(max_length=128, verbose_name='ID фотографии')
+    photo = models.ImageField(upload_to='photos', verbose_name='Фотография')
 
 class Ladder(models.Model):
     is_percent = models.BooleanField(default=True, verbose_name='Тип лесенки')
@@ -51,18 +60,19 @@ class Reaction(models.Model):
 
 
 class ReactionParam(models.Model):
+    view_persent = models.IntegerField(default=100, verbose_name='Количество реакций от просмотра')
     start_ladder = models.OneToOneField('Ladder', on_delete=models.CASCADE, null=True, blank=True,
                                         verbose_name='Лесенка к старту')
-    basic_reactions = models.OneToOneField('Reaction', on_delete=models.CASCADE, null=True, blank=True,
+    basic_reactions = models.ForeignKey('Reaction', on_delete=models.CASCADE, null=True, blank=True,
                                            related_name='basic_reactions',
                                            verbose_name='Основные реакции')
-    text_reactions = models.OneToOneField('Reaction', on_delete=models.CASCADE, null=True, blank=True,
+    text_reactions = models.ForeignKey('Reaction', on_delete=models.CASCADE, null=True, blank=True,
                                           related_name='text_reactions',
                                           verbose_name='Реакции из текста')
-    user_reactions = models.OneToOneField('Reaction', on_delete=models.CASCADE, null=True, blank=True,
+    user_reactions = models.ForeignKey('Reaction', on_delete=models.CASCADE, null=True, blank=True,
                                           related_name='user_reactions',
                                           verbose_name='Реакции от пользователей')
-    ai_reactions = models.OneToOneField('Reaction', on_delete=models.CASCADE, null=True, blank=True,
+    ai_reactions = models.ForeignKey('Reaction', on_delete=models.CASCADE, null=True, blank=True,
                                         related_name='ai_reactions',
                                         verbose_name='Реакции от ИИ')
     last_post_reaction = models.IntegerField(default=2, verbose_name='На сколько старых постов будут ставиться реакции')

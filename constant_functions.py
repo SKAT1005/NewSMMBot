@@ -5,14 +5,14 @@ CONSTANT_API_HASH = '2121212121'
 
 
 
-async def activate_session(session):
-    sesson_path = f'sessions/{session.phone}'
-    client = TelegramClient(sesson_path, api_id=CONSTANT_API_ID, api_hash=CONSTANT_API_HASH,
+async def activate_session(session, need_make_online=True):
+    client = TelegramClient(session.file, api_id=CONSTANT_API_ID, api_hash=CONSTANT_API_HASH,
                                  system_version="4.16.30-vxCUSTOM")
     await client.start(phone=session.phone, password=session.password)
-    await client(functions.account.UpdateStatusRequest(
-        offline=False
-    ))
+    if need_make_online:
+        await client(functions.account.UpdateStatusRequest(
+            offline=False
+        ))
     return client
 
 async def get_entity_buy_id(client, channel_id):

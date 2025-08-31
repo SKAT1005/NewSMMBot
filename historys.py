@@ -65,10 +65,6 @@ async def history_reaction():
         await asyncio.sleep(60)
 
 
-async def main():
-    asyncio.create_task(history_view())
-    asyncio.create_task(history_reaction())
-
 
 async def add_history_task_process(task: Task):
     story_param = task.history
@@ -126,3 +122,8 @@ async def add_view_task_main():
         for task in Task.objects.filter(channel_id__isnull=False, is_start_parse_history=False, history__isnull=False):
             asyncio.create_task(add_history_task_process(task))
         await asyncio.sleep(10)
+
+
+async def main():
+    asyncio.create_task(history_view())
+    asyncio.create_task(history_reaction())

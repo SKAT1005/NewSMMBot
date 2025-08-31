@@ -1,5 +1,7 @@
 import asyncio
+import datetime
 import json
+import random
 import time
 
 from django.contrib.auth import authenticate, login, logout
@@ -7,6 +9,7 @@ from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
+from django.utils import timezone
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
@@ -166,6 +169,7 @@ def get_code(request):
     else:
         return JsonResponse({"status": "error", "message": "Only POST method is allowed"}, status=405)
 
+
 class AddSessionView(View):
     def get(self, request):
         user = request.user
@@ -203,6 +207,8 @@ class AddSessionView(View):
                     await client.disconnect()
             file = asyncio.run(create_session())
         if file:
+            pass_time = random.randint(1, 60*60*24*30*3)
+            next_update_photo = timezone.now() + datetime.timedelta(seconds=pass_time)
             Sessions.objects.create(
                 phone=phone,
                 api_id=api_id,
@@ -210,7 +216,8 @@ class AddSessionView(View):
                 donor_id=donor_id,
                 password=password,
                 file=file,
-                gender=gender
+                gender=gender,
+                next_update_photo=next_update_photo
             )
         return render(request, 'add_session.html')
 

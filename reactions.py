@@ -55,19 +55,21 @@ async def get_reactions_list(client, task, entity, message_id):
 async def reaction_process(reaction_task: ReactionTask):
     task = reaction_task.task
     for session in reaction_task.sessions.all():
-        client = await constant_functions.activate_session(session)
-        entity = await client.get_entity(task.channel_link)
-        message_id = reaction_task.message_id
-        reactions_list = await get_reactions_list(client=client, task=task, entity=entity, message_id=message_id)
-        try:
-            await client(SendReactionRequest(
-                peer=entity,
-                msg_id=message_id,
-                reaction=[types.ReactionEmoji(emoticon=random.choice(reactions_list))]
-            ))
-        except Exception as e:
-            print(f'reaction_process: {e}')
-        await client.disconnect()
+        if task.reaction.view_persent <= random.randint(1, 100):
+            client = await constant_functions.activate_session(session)
+            entity = await client.get_entity(task.channel_link)
+            message_id = reaction_task.message_id
+            reactions_list = await get_reactions_list(client=client, task=task, entity=entity, message_id=message_id)
+            try:
+                await client(SendReactionRequest(
+                    peer=entity,
+                    msg_id=message_id,
+                    reaction=[types.ReactionEmoji(emoticon=random.choice(reactions_list))]
+                ))
+            except Exception as e:
+                print(f'reaction_process: {e}')
+            await client.disconnect()
+        await asyncio.sleep(reaction_task.sleep_time)
     reaction_task.delete()
 
 

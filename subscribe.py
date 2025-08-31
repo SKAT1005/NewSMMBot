@@ -31,6 +31,7 @@ async def subscribe_on_channel(client, channel_url):
     except Exception as ex:
         await client(functions.messages.ImportChatInviteRequest(channel_url[14:]))
     return entity.id
+
 async def subscribe_process(subscribe_task: SubscribeTask):
     task = subscribe_task.task
     while True:
