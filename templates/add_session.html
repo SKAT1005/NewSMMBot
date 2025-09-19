@@ -236,6 +236,7 @@
 
     <div class="tasks-list">
         <div class="top-buttons">
+            <button><a href="{% url "task_list" %}" class="btn">Список задач</a></button>
             <button><a href="{% url "task_detail" %}" class="btn">Создать задачу</a></button>
             <button><a href="{% url "template_detail" %}" class="btn">Создать шаблон</a></button>
             <button><a href="{% url "template_list" %}" class="btn">Список шаблонов</a></button>
@@ -277,7 +278,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="donorIdInput" class="required">ID донора</label>
+                    <label for="donorIdInput" class="required">Ник донора</label>
                     <input type="text" name="donor_id" id="donorIdInput" required placeholder="Введите ID донора">
                     <div class="error-message" id="donorIdError">Это поле обязательно для заполнения</div>
                 </div>

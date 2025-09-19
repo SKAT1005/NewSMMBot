@@ -76,8 +76,15 @@ WSGI_APPLICATION = 'NewSMMBot.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'NewSMMBot',
+        'USER': 'postgres',
+        'PASSWORD': '1005',
+        'HOST': 'localhost',
+        'PORT': '5432',
+        'OPTIONS': {
+            'options': '-c client_encoding=UTF8'
+        },
     }
 }
 

@@ -13,9 +13,12 @@ from django.utils import timezone
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
-from app.models import Task, Template, Sessions, Comment
+from app.models import Task, Template, Sessions, Comment, Donor
 from app.task import task_action
 import telethon
+
+from const_sessions import session_list
+from constant_functions import CONSTANT_API_ID, CONSTANT_API_HASH
 
 
 def get_post_data(post):
@@ -191,34 +194,45 @@ class AddSessionView(View):
             gender = True
         else:
             gender = False
+        session_file = f'sessions/{phone}'
+        client = None
         if not file:
             async def create_session():
-                session_file = f'sessions/{phone}'
                 client = telethon.TelegramClient(session_file, api_id, api_hash,
                                                  system_version="4.16.30-vxCUSTOM")
                 await client.connect()
                 try:
-                    await client.sign_in(phone, code, phone_code_hash=phone_code_hash)
-                    return session_file
-                except telethon.errors.SessionPasswordNeededError:
-                    await client.sign_in(password=password)
-                    return session_file
+                    await client.sign_in(phone, code=code, phone_code_hash=phone_code_hash)
+                    return session_file, client
+                except Exception as e:
+                    await client.sign_in(phone, code=code, phone_code_hash=phone_code_hash, password=password)
+                    return session_file, client
                 finally:
                     await client.disconnect()
-            file = asyncio.run(create_session())
+            file, client = asyncio.run(create_session())
         if file:
+
+            async def create_session():
+                client = telethon.TelegramClient(session_file, api_id=CONSTANT_API_ID,
+                                                 api_hash=CONSTANT_API_HASH,
+                                                 system_version="4.16.30-vxCUSTOM")
+                return client
+            if not client:
+                client = asyncio.run(create_session())
             pass_time = random.randint(1, 60*60*24*30*3)
             next_update_photo = timezone.now() + datetime.timedelta(seconds=pass_time)
-            Sessions.objects.create(
+            session = Sessions.objects.create(
                 phone=phone,
                 api_id=api_id,
                 api_hash=api_hash,
                 donor_id=donor_id,
                 password=password,
                 file=file,
-                gender=gender,
+                is_male=gender,
                 next_update_photo=next_update_photo
             )
+            session_list[session.id] = client
+            Donor.objects.create(session=session)
         return render(request, 'add_session.html')
 
 
@@ -237,7 +251,7 @@ def comments(request):
     if not user.is_authenticated:
         return redirect('auth')
     comments = Comment.objects.filter(task__user=user, is_check=False)
-    return render(request, 'template_list.html', context={'comments': comments})
+    return render(request, 'comment_check.html', context={'comments': comments})
 
 
 

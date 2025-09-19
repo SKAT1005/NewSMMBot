@@ -369,8 +369,8 @@ def add_session_in_task(task):
     total_needed = task.subscribers_count
 
     # Рассчитываем количество мужских и женских сессий
-    male_count = total_needed * subscribe_param.male // 100
-    female_count = total_needed * subscribe_param.female // 100
+    male_count = total_needed * int(subscribe_param.male) // 100
+    female_count = total_needed * int(subscribe_param.female) // 100
 
     # Корректируем остаток
     remainder = total_needed - male_count - female_count

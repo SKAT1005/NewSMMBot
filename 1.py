@@ -21,10 +21,4 @@ async def main1():
         await asyncio.sleep(0.5) # Неблокирующая задержка
 
 
-l = datetime.datetime.now()
-time.sleep(5)
-n = datetime.datetime.now()
-k = n - l
-print(n)
-time.sleep(k.total_seconds())
-print(datetime.datetime.now())
+asyncio.run(main())

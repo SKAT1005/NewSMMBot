@@ -206,6 +206,7 @@
 
     <div class="tasks-list">
         <div class="top-buttons">
+            <button><a href="{% url "task_list" %}" class="btn">Список задач</a></button>
             <button><a href="{% url "task_detail" %}" class="btn">Создать задачу</a></button>
             <button><a href="{% url "template_detail" %}" class="btn">Создать шаблон</a></button>
             <button><a href="{% url "template_list" %}" class="btn">Список шаблонов</a></button>
@@ -228,11 +229,11 @@
 </div>
 
 <script>
-    const tasks = [ {% for task in tasks %}
-        {channel: {{ task.channel_link }}, subscribers: {{task.sessions.count}}, id:{{task.id}} },
-        {% endfor %}
-
-    ];
+    const tasks = [
+  {% for task in tasks %}
+  {channel: "{{ task.channel_link }}", subscribers: {{task.sessions.count}}, id: "{{task.id}}" },
+  {% endfor %}
+];
 
     let currentPage = 1;
     const tasksPerPage = 10;

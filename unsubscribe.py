@@ -11,33 +11,71 @@ import constant_functions
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'NewSMMBot.settings')
 django.setup()
 
+from asgiref.sync import sync_to_async
 from app.models import SubscribeTask, ActionTask, UnsubscribeTask
 
 
 async def unsubscribe_process(unsubscribe_task: UnsubscribeTask):
-    task = unsubscribe_task.task
+    task = await sync_to_async(lambda: unsubscribe_task.task)()
+    # Получаем сессии асинхронно
+    sessions = await sync_to_async(list)(unsubscribe_task.sessions.all())
+    total_sessions = len(sessions)
+
     while True:
-        if unsubscribe_task.next_action <= timezone.now():
-            sessions = list(unsubscribe_task.sessions.all())
-            session = sessions[unsubscribe_task.unsubscribed_sessions]
-            client = await constant_functions.activate_session(session)
-            entity = await client.get_entity(task.channel_link)
-            client(functions.channels.DeleteChannelRequest(
-                channel=entity
-            ))
-            client.disconnect()
-        if unsubscribe_task.unsubscribed_sessions == len(unsubscribe_task.sessions.all()):
-            unsubscribe_task.delete()
+        current_time = timezone.now()
+        # Получаем next_action асинхронно
+        next_action_time = await sync_to_async(lambda: unsubscribe_task.next_action)()
+
+        if next_action_time <= current_time:
+            # Получаем текущий счетчик асинхронно
+            current_unsubscribed = await sync_to_async(lambda: unsubscribe_task.unsubscribed_sessions)()
+
+            if current_unsubscribed < total_sessions:
+                session = sessions[current_unsubscribed]
+                client = await constant_functions.activate_session(session)
+
+                try:
+                    entity = await client.get_entity(task.channel_link)
+                    # Добавлен await для асинхронного вызова
+                    await client(functions.channels.LeaveChannelRequest(
+                        channel=entity
+                    ))
+                except Exception as e:
+                    print(f"Error unsubscribing from channel: {e}")
+                finally:
+                    await client.disconnect()
+
+                # Обновляем счетчик асинхронно
+                unsubscribe_task.unsubscribed_sessions = current_unsubscribed + 1
+                await sync_to_async(unsubscribe_task.save)(update_fields=['unsubscribed_sessions'])
+
+                # Обновляем next_action для следующей сессии
+                unsubscribe_task.next_action = timezone.now() + timedelta(seconds=random.randint(100, 500) / 100)
+                await sync_to_async(unsubscribe_task.save)(update_fields=['next_action'])
+
+        # Проверяем завершение асинхронно
+        current_unsubscribed = await sync_to_async(lambda: unsubscribe_task.unsubscribed_sessions)()
+        if current_unsubscribed == total_sessions:
+            await sync_to_async(unsubscribe_task.delete)()
             break
-        await asyncio.sleep(random.randint(100, 500)/100)
+
+        await asyncio.sleep(1)  # Уменьшил время сна для более responsive проверки
+    try:
+        await sync_to_async(unsubscribe_task.delete)()
+    except Exception:
+        pass
 
 
 async def main():
     while True:
-        for unsubscribe_task in UnsubscribeTask.objects.filter(is_start=False):
+        print(2)
+        # Получаем задачи асинхронно
+        unsubscribe_tasks = await sync_to_async(list)(UnsubscribeTask.objects.filter(is_start=False))
+
+        for unsubscribe_task in unsubscribe_tasks:
+            # Обновляем задачу асинхронно
             unsubscribe_task.is_start = True
-            unsubscribe_task.save(update_fields=['is_start'])
+            await sync_to_async(unsubscribe_task.save)(update_fields=['is_start'])
             asyncio.create_task(unsubscribe_process(unsubscribe_task))
+
         await asyncio.sleep(60)
-
-

@@ -16,7 +16,7 @@ class Sessions(models.Model):
 
 class Donor(models.Model):
     session = models.OneToOneField('Sessions', on_delete=models.CASCADE, related_name='donor', verbose_name='сессия')
-    photos = models.ManyToManyField('DonorPhoto', verbose_name='Фотографии донора')
+    photos = models.ManyToManyField('DonorPhoto', blank=True, verbose_name='Фотографии донора')
 
 class DonorPhoto(models.Model):
     photo_id = models.CharField(max_length=128, verbose_name='ID фотографии')

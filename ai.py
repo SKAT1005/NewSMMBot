@@ -1,7 +1,7 @@
 import requests
 
 API_URL = "https://gigachat.devices.sberbank.ru/api/v1/chat/completions"
-API_KEY = ''
+API_KEY = 'ZjgwZTFlNzUtZmI2Mi00NDI5LTgwNGUtOWQ5MmMxNzQ1OWQxOmM4ODgwYTQ2LTRkNjUtNDNkMi05YzExLTJmNGM3MWRiYzE4Yg=='
 
 
 def get_token():
