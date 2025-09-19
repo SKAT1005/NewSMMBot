@@ -56,7 +56,8 @@ def auth_view(request):
                 context['register_error'] = 'Пользователь уже существует.'
             else:
                 user = User.objects.create_user(username=username, password=password)
-                authenticate(request, user)
+                authenticated_user = authenticate(username=username, password=password)
+                login(request, authenticated_user)
                 return redirect('task_list')  # Замените на нужный URL
 
     return render(request, 'login.html', context)
@@ -64,7 +65,7 @@ def auth_view(request):
 
 def logout_view(request):
     logout(request)
-    return redirect('login')
+    return redirect('auth')
 
 
 def task_list(request):
