@@ -51,3 +51,6 @@ def get_answer(prompt, text):
         return answer
     except Exception:
         return None
+
+
+

@@ -15,6 +15,8 @@ def create_ladder(is_percent, param, spread=None):
         ladder.param = param
         ladder.save(update_fields=['param'])
     if spread:
+        if spread == None:
+            spread = 0
         ladder.spread = spread
         ladder.save(update_fields=['spread'])
     return ladder
@@ -106,7 +108,7 @@ def change_view(task, view_start_ladder_type, view_start_ladder_param, view_star
         view = ViewParam.objects.create()
         task.view = view
         task.save(update_fields=['view'])
-    if view_start_ladder_type and view_start_ladder_param and view_start_ladder_spread:
+    if view_start_ladder_type and view_start_ladder_param:
         if view_start_ladder_type == 'percent':
             view_start_ladder_type = True
         else:
@@ -121,7 +123,7 @@ def change_view(task, view_start_ladder_type, view_start_ladder_param, view_star
             start_ladder = create_ladder(view_start_ladder_type, view_start_ladder_param, view_start_ladder_spread)
             view.start_ladder = start_ladder
 
-    if view_time_ladder_type and view_time_ladder_param and view_time_ladder_spread:
+    if view_time_ladder_type and view_time_ladder_param:
         if view_time_ladder_type == 'percent':
             view_time_ladder_type = True
         else:
@@ -420,32 +422,39 @@ def create_subscribe_task(task: Task):
     add_session_in_task(task)
     subscribe_param = task.subscribe
     all_sessions = list(task.sessions.all())
-    unsubscribe_persent, unsubscribe_time = map(int, subscribe_param.unsubscribes.split('/'))
-    unsubscribe_list = all_sessions[:len(all_sessions)*unsubscribe_persent//100]
+    if subscribe_param.unsubscribes != '0':
+        unsubscribe_persent, unsubscribe_time = map(int, subscribe_param.unsubscribes.split('/'))
+        unsubscribe_list = all_sessions[:len(all_sessions) * unsubscribe_persent // 100]
+    else:
+        unsubscribe_list = []
     start_ladders = []
     time_ladders = []
     if subscribe_param.start_ladder:
         if subscribe_param.start_ladder.is_percent:
             start_ladders = [[task.subscribers_count * int(i.split('/')[0]) // 100, int(i.split('/')[1]) * 60] for i in
-                            subscribe_param.start_ladder.param.split('; ')]
+                             subscribe_param.start_ladder.param.split('; ')]
         else:
             start_ladders = [list(map(int, i.split('/'))) for i in subscribe_param.start_ladder.param.split('; ')]
     if subscribe_param.time_ladder:
         if subscribe_param.time_ladder.is_percent:
             time_ladders = [[task.subscribers_count * int(i.split('/')[0]) // 100, i.split('/')[1]] for i in
-                           subscribe_param.time_ladder.param.split('; ')]
+                            subscribe_param.time_ladder.param.split('; ')]
         else:
             time_ladders = [[int(i.split('/')[0]), i.split('/')[1]] for i in
-                           subscribe_param.time_ladder.param.split('; ')]
+                            subscribe_param.time_ladder.param.split('; ')]
+    l = True
     for start_ladder in start_ladders:
         need_sessions = all_sessions[:start_ladder[0]]
         all_sessions = all_sessions[start_ladder[0]:]
         sleep_time = start_ladder[1] / len(need_sessions) if need_sessions else 0
         subscribe_task = SubscribeTask.objects.create(
-                task=task,
-                next_action=task.start_time,
-                sleep_time=sleep_time
+            task=task,
+            next_action=task.start_time,
+            sleep_time=sleep_time,
+            create_view_task=l
         )
+        if l:
+            l = False
         subscribe_task.sessions.add(*need_sessions)
     for time_ladder in time_ladders:
         today = datetime.now().date()
@@ -462,14 +471,15 @@ def create_subscribe_task(task: Task):
         subscribe_task = SubscribeTask.objects.create(
             task=task,
             next_action=task.start_time,
-            sleep_time=sleep_time
+            sleep_time=sleep_time,
+            create_view_task=l
         )
+        if l:
+            l = False
         subscribe_task.sessions.add(*need_sessions)
     if unsubscribe_list:
         unsubscribe_task = UnsubscribeTask.objects.create(
             task=task,
-            next_action=timezone.now()+timedelta(minutes=unsubscribe_time)
+            next_action=timezone.now() + timedelta(minutes=unsubscribe_time)
         )
         unsubscribe_task.sessions.add(*unsubscribe_list)
-
-

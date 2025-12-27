@@ -233,7 +233,7 @@
     <div class="block">
         <label>Количество подписчиков</label>
         <input type="number"  min={{ task.subscribers_count }}
-                {% if task %}value={{ task.subscribers_count|safe }}{% endif %} name="subscribers_count">
+                {% if task %}value="{{ task.subscribers_count|safe }}"{% endif %} name="subscribers_count">
     </div>
 
     <div class="block">
@@ -256,7 +256,7 @@
     {% if task and not task.is_active %}
         <div class="form-group">
             <label for="startDateTime">Дата и время начала работы:</label>
-            <input type="datetime-local" id="startDateTime" value={{ task.date_str|safe }} name="start_time">
+            <input type="datetime-local" id="startDateTime" value="{{ task.date_str|safe }}" name="start_time">
         </div>
     {% endif %}
 
@@ -277,7 +277,7 @@
             М: <input type="number" id="male" name="male" min="0" max="100"
                       value="{% if task  and task.subscribe %}{{ task.subscribe.male|safe }}{% else %}0{% endif %}">
             Ж: <input type="number" id="female" name="female" min="0" max="100"
-                      value="{% if task  and task.subscribe %}{{ task.subscribe.female|safe }}|safe{% else %}0{% endif %}">
+                      value="{% if task  and task.subscribe %}{{ task.subscribe.female|safe }}{% else %}0{% endif %}">
         </div>
         <small id="genderWarning" class="hidden">Сумма не должна превышать 100</small>
 
@@ -296,6 +296,7 @@
             </select>
             <input type="text" id="viewsStartInput" name="start_ladder_param" placeholder="Введите значение"
                    {% if task and task.subscribe.start_ladder %}value="{{ task.subscribe.start_ladder.param|safe }}" {% endif %}>
+            <small>Формат ввода: процент(количество)/минуты; процент(количество)/минуты</small>
         </div>
 
         <h3>Лесенка с привязкой ко времени</h3>
@@ -312,13 +313,15 @@
                 </option>
             </select>
             <input type="text" id="viewsStartInput" name="time_ladder_param" placeholder="Введите значение"
-                   {% if task and task.subscribe.time_ladder %}value={{ task.subscribe.time_ladder.param|safe }} {% endif %}>
+                   {% if task and task.subscribe.time_ladder %}value="{{ task.subscribe.time_ladder.param|safe }}" {% endif %}>
+            <small>Формат ввода: процент(количество)/HH:MM-HH:MM; процент(количество)/HH:MM-HH:MM </small>
         </div>
 
         <div class="block">
             <label for="unsubscribes">Отписки</label>
             <input type="text" id="unsubscribes" name="unsubscribes" min="0"
-                   {% if task and task.subscribe %}value={{ task.subscribe.unsubscribes|safe }} {% endif %}>
+                   {% if task and task.subscribe %}value="{{ task.subscribe.unsubscribes|safe }}" {% endif %}>
+            <small>Формат ввода: процент(количество)/минуты; процент(количество)/минуты</small>
         </div>
     </div>
 
@@ -338,9 +341,10 @@
                 </option>
             </select>
             <input type="text" id="viewsStartInput" name="view_start_ladder_param" placeholder="Введите значение"
-                   {% if task and task.view.start_ladder and task.view.start_ladder %}value={{ task.view.start_ladder.param|safe }} {% endif %}>
+                   {% if task and task.view and task.view.start_ladder %}value="{{ task.view.start_ladder.param|safe }}" {% endif %}>
+            <small>Формат ввода: процент(количество)/минуты; процент(количество)/минуты</small>
             <input type="text" id="scatterTime" name="view_start_ladder_spread" placeholder="Разброс"
-            {% if task and task.view.start_ladder and task.view.start_ladder %}value={{ task.view.start_ladder.spread|safe }} {% endif %}>
+            {% if task and task.view and task.view.start_ladder %}value="{{ task.view.start_ladder.spread|safe }}" {% endif %}>
         </div>
 
         <h3>Лесенка с привязкой ко времени</h3>
@@ -357,9 +361,10 @@
                 </option>
             </select>
             <input type="text" id="viewsStartInput" name="view_time_ladder_param" placeholder="Введите значение"
-                   {% if task and task.view.time_ladder %}value={{ task.view.time_ladder.param|safe }} {% endif %}>
+                   {% if task and task.view.time_ladder %}value="{{ task.view.time_ladder.param|safe }}" {% endif %}>
+            <small>Формат ввода: процент(количество)/HH:MM-HH:MM; процент(количество)/HH:MM-HH:MM </small>
             <input type="text" id="scatterTime" name="view_time_ladder_spread" placeholder="Разброс"
-            {% if task and task.view.start_ladder and task.view.start_ladder %}value={{ task.view.start_ladder.spread|safe }} {% endif %}>
+            {% if task and task.view.start_ladder and task.view.start_ladder %}value="{{ task.view.start_ladder.spread|safe }}" {% endif %}>
         </div>
 
         <div class="block">
@@ -373,6 +378,8 @@
             <input type="text" name="last_post" {% if task and task.view %}value="{{ task.view.last_post|safe }}"{% endif %}
                    placeholder="Описание охватов на
                    предыдущие посты">
+
+            <small>Формат ввода: процент(количество)/минуты; процент(количество)/минуты</small>
         </div>
 
         <div class="block">
@@ -391,7 +398,8 @@
         <div class="sub-block">
             <label>Лесенка с привязкой к старту (в процентах)</label>
             <input type="text" placeholder="Введите значение" name="reaction_start_ladder"
-                   {% if task and task.reaction %}value={{ task.reaction.start_ladder.param|safe }}{% endif %}>
+                   {% if task and task.reaction %}value="{{ task.reaction.start_ladder.param|safe }}"{% endif %}>
+            <small>Формат ввода: процент/минуты; процент/минуты</small>
         </div>
 
         <!-- Основные реакции -->
@@ -400,13 +408,13 @@
             <div class="input-group">
                 <div><input type="text" placeholder="Название реакции" name="reaction_name"
                             {% if task and task.reaction %}value=
-                                {{ task.reaction.basic_reactions.reactions|safe }}{% endif %}></div>
+                                "{{ task.reaction.basic_reactions.reactions|safe }}"{% endif %}></div>
                 <div><input type="number" min="0" placeholder="Мин. кол-во" name="basic_min_number"
                             {% if task and task.reaction %}value=
-                                {{ task.reaction.basic_reactions.min_reaction|safe }}{% endif %}></div>
+                                "{{ task.reaction.basic_reactions.min_reaction|safe }}"{% endif %}></div>
                 <div><input type="number" min="0" placeholder="Макс. кол-во" name="basic_max_number"
                             {% if task and task.reaction %}value=
-                                {{ task.reaction.basic_reactions.max_reaction|safe }}{% endif %}></div>
+                                "{{ task.reaction.basic_reactions.max_reaction|safe }}"{% endif %}></div>
             </div>
         </div>
 
@@ -416,13 +424,13 @@
             <div class="input-group">
                 <div><input type="number" min="1" placeholder="Кол-во типов" name="text_reaction_number"
                             {% if task and task.reaction %}value=
-                                {{ task.reaction.text_reactions.type_count|safe }}{% endif %}></div>
+                                "{{ task.reaction.text_reactions.type_count|safe }}"{% endif %}></div>
                 <div><input type="number" min="0" placeholder="Мин. кол-во" name="text_min_number"
                             {% if task and task.reaction %}value=
-                                {{ task.reaction.text_reactions.min_reaction|safe }}{% endif %}></div>
+                                "{{ task.reaction.text_reactions.min_reaction|safe }}"{% endif %}></div>
                 <div><input type="number" min="0" placeholder="Макс. кол-во" name="text_max_number"
                             {% if task and task.reaction %}value=
-                                {{ task.reaction.text_reactions.max_reaction|safe }}{% endif %}></div>
+                                "{{ task.reaction.text_reactions.max_reaction|safe }}"{% endif %}></div>
             </div>
         </div>
 
@@ -432,13 +440,13 @@
             <div class="input-group">
                 <div><input type="number" min="1" placeholder="Кол-во типов" name="user_reaction_number"
                             {% if task and task.reaction %}value=
-                                {{ task.reaction.user_reactions.type_count|safe }}{% endif %}></div>
+                                "{{ task.reaction.user_reactions.type_count|safe }}"{% endif %}></div>
                 <div><input type="number" min="0" placeholder="Мин. кол-во" name="user_min_number"
                             {% if task and task.reaction %}value=
-                                {{ task.reaction.user_reactions.min_reaction|safe }}{% endif %}></div>
+                                "{{ task.reaction.user_reactions.min_reaction|safe }}"{% endif %}></div>
                 <div><input type="number" min="0" placeholder="Макс. кол-во" name="user_max_number"
                             {% if task and task.reaction %}value=
-                                {{ task.reaction.user_reactions.max_reaction|safe }}{% endif %}></div>
+                                "{{ task.reaction.user_reactions.max_reaction|safe }}"{% endif %}></div>
             </div>
         </div>
 
@@ -447,14 +455,14 @@
             <label>Реакции от ИИ</label>
             <div class="input-group">
                 <div><input type="number" min="1" placeholder="Кол-во типов" name="ai_reaction_number"
-                            {% if task and task.reaction %}value={{ task.reaction.ai_reactions.type_count|safe }}{% endif %}>
+                            {% if task and task.reaction %}value="{{ task.reaction.ai_reactions.type_count|safe }}"{% endif %}>
                 </div>
                 <div><input type="number" min="0" placeholder="Мин. кол-во" name="ai_min_number"
                             {% if task and task.reaction %}value=
-                                {{ task.reaction.ai_reactions.min_reaction|safe }}{% endif %}></div>
+                                "{{ task.reaction.ai_reactions.min_reaction|safe }}"{% endif %}></div>
                 <div><input type="number" min="0" placeholder="Макс. кол-во" name="ai_max_number"
                             {% if task and task.reaction %}value=
-                                {{ task.reaction.ai_reactions.max_reaction|safe }}{% endif %}></div>
+                                "{{ task.reaction.ai_reactions.max_reaction|safe }}"{% endif %}></div>
             </div>
         </div>
 
@@ -463,7 +471,7 @@
             <label>Реакции на старые посты</label>
             <input type="number" min="1" placeholder="Кол-во последних постов" name="reaction_old_post"
                     {% if task and task.reaction %}
-                   value={{ task.reaction.last_post_reaction|safe }}
+                   value="{{ task.reaction.last_post_reaction|safe }}"
                            {% else %}
                            value="2"
                     {% endif %}>
@@ -485,14 +493,14 @@
             <label>Подписчики</label>
             <input type="number" min="0" max="100" placeholder="% аккаунтов, которые подпишутся на рекламу"
                    name="ad_subscribe_percent"
-                   {% if task and task.ad %}value={{ task.ad.subscribe_percent|safe }}{% endif %}>
+                   {% if task and task.ad %}value="{{ task.ad.subscribe_percent|safe }}"{% endif %}>
         </div>
 
         <!-- Просмотры -->
         <div class="sub-block">
             <label>Просмотры</label>
             <input type="text" placeholder="% от подписавшихся на рекламу, которые будут читать контент"
-                   name="ad_start_ladder" {% if task and task.ad %}value={{ task.ad.start_ladder|safe }}{% endif %}>
+                   name="ad_start_ladder" {% if task and task.ad %}value="{{ task.ad.start_ladder|safe }}"{% endif %}>
             <small>Лесенка по старту (по умолчанию): 5/10; 4/35; 3/45; 6/150;13/280; 11/390; 28/1440; 22/2880;
                 8/4740</small>
         </div>
@@ -501,7 +509,7 @@
         <div class="sub-block">
             <label>Отписка</label>
             <input type="text" placeholder="Процент отписок/минуты" name="ad_unsubscribes"
-                   {% if task and task.ad %}value={{ task.ad.unsubscribes|safe }}{% endif %}>
+                   {% if task and task.ad %}value="{{ task.ad.unsubscribes|safe }}"{% endif %}>
             <small>Пример: 20/1440; 40/44640 — 20% отпишутся через 24ч, 40% в течение месяца</small>
         </div>
 
@@ -509,14 +517,14 @@
         <div class="sub-block">
             <label>Реакции в рекламируемом канале</label>
             <input type="number" min="0" max="100" placeholder="% реакций от количества просмотров"
-                   name="ad_channel_reaction" {% if task and task.ad %}value={{ task.ad.channel_reaction|safe }}{% endif %}>
+                   name="ad_channel_reaction" {% if task and task.ad %}value="{{ task.ad.channel_reaction|safe }}"{% endif %}>
         </div>
 
         <!-- Реакции на рекламный пост -->
         <div class="sub-block">
             <label>Реакции на рекламный пост</label>
             <input type="number" min="0" max="100" placeholder="% от общего числа реакций для рекламных постов"
-                   name="ad_reaction" {% if task and task.ad %}value={{ task.ad.ad_reaction|safe }}{% endif %}>
+                   name="ad_reaction" {% if task and task.ad %}value="{{ task.ad.ad_reaction|safe }}"{% endif %}>
             <small>Применима только накрутка основных, из текста и от пользователей</small>
         </div>
 
@@ -524,7 +532,7 @@
         <div class="sub-block">
             <label>Комментарии</label>
             <input type="number" min="0" placeholder="Количество комментариев под рекламными постами" name="ad_comment"
-                   {% if task and task.ad %}value={{ task.ad.comment|safe }}{% endif %}>
+                   {% if task and task.ad %}value="{{ task.ad.comment|safe }}"{% endif %}>
         </div>
     </div>
 
@@ -536,22 +544,23 @@
             <label>Общее количество просмотров</label>
             <input type="number" id="totalHistoryViews" min="0" placeholder="Введите общее количество просмотров"
                    name="history_view_count"
-                   {% if task and task.history %}value={{ task.history.view_count|safe }}{% endif %}>
+                   {% if task and task.history %}value="{{ task.history.view_count|safe }}"{% endif %}>
         </div>
 
         <!-- Лесенка просмотров -->
         <div class="sub-block">
             <label>Лесенка просмотров</label>
             <input type="text" placeholder="Пример: 20/5; 10/20; 70/60" name="history_view_ladder_param"
-                   {% if task and task.history %}value={{ task.history.view_ladder.param|safe }}{% endif %}>
-            <small>Формат: процент от общего количества просмотров / минуты после выхода поста</small>
+                   {% if task and task.history %}value="{{ task.history.view_ladder.param|safe }}"{% endif %}>
+
+            <small>Формат ввода: процент/минуты; процент/минуты</small>
         </div>
 
         <!-- Разброс просмотров -->
         <div class="sub-block">
             <label>Разброс просмотров</label>
             <input type="text" placeholder="Пример: 10/20" name="history_view_ladder_spread"
-                   {% if task and task.history %}value={{ task.history.view_ladder.spread|safe }}{% endif %}>
+                   {% if task and task.history %}value="{{ task.history.view_ladder.spread|safe }}"{% endif %}>
             <small>Формат: -процент/+процент</small>
         </div>
 
@@ -560,7 +569,7 @@
             <label>Реакции на истории</label>
             <input type="number" id="historyReactions" min="0" placeholder="Общее количество реакций"
                    name="history_reaction_count"
-                   {% if task and task.history %}value={{ task.history.reaction_count|safe }}{% endif %}>
+                   {% if task and task.history %}value="{{ task.history.reaction_count|safe }}"{% endif %}>
             <small>Не должно превышать общее количество просмотров</small>
             <div id="reactionWarning" style="color: red; display: none;">Реакции не могут превышать количество
                 просмотров!
@@ -571,14 +580,15 @@
         <div class="sub-block">
             <label>Лесенка реакций</label>
             <input type="text" placeholder="Пример: 20/5; 10/20; 70/60" name="history_reaction_ladder_param"
-                   {% if task and task.history %}value={{ task.history.reaction_ladder.param|safe }}{% endif %}>
-            <small>Формат: процент от общего количества реакций / минуты после выхода поста</small>
+                   {% if task and task.history %}value="{{ task.history.reaction_ladder.param|safe }}"{% endif %}>
+
+            <small>Формат ввода: процент/минуты; процент/минуты</small>
         </div>
 
         <div class="sub-block">
             <label>Разброс реакций</label>
             <input type="text" placeholder="Пример: 10/20" name="history_reaction_ladder_spread"
-                   {% if task and task.history %}value={{ task.history.reaction_ladder.spread|safe }}{% endif %}>
+                   {% if task and task.history %}value="{{ task.history.reaction_ladder.spread|safe }}"{% endif %}>
             <small>Формат: -процент/+процент</small>
         </div>
     </div>
@@ -590,29 +600,30 @@
         <div class="sub-block">
             <label>Минимальное количество комментариев</label>
             <input type="number" min="0" placeholder="Введите минимум" name="min_comment"
-                    {% if task and task.comment %}value={{ task.comment.min_comment|safe }}{% endif %}>
+                    {% if task and task.comment %}value="{{ task.comment.min_comment|safe }}"{% endif %}>
         </div>
 
         <!-- Максимальное количество комментариев -->
         <div class="sub-block">
             <label>Максимальное количество комментариев</label>
             <input type="number" min="0" placeholder="Введите максимум" name="max_comment"
-                    {% if task and task.comment %}value={{ task.comment.max_comment|safe }}{% endif %}>
+                    {% if task and task.comment %}value="{{ task.comment.max_comment|safe }}"{% endif %}>
         </div>
 
         <!-- Лесенка для комментариев -->
         <div class="sub-block">
             <label>Лесенка для комментариев</label>
             <input type="text" placeholder="Пример: 20/5; 10/20; 70/60" name="ladder"
-                    {% if task and task.comment %}value={{ task.comment.ladder|safe }}{% endif %}>
-            <small>Формат: процент от общего количества комментариев / минуты после выхода поста</small>
+                    {% if task and task.comment %}value="{{ task.comment.ladder|safe }}"{% endif %}>
+
+            <small>Формат ввода: процент/минуты; процент/минуты</small>
         </div>
 
         <!-- Автоматическая модерация комментариев -->
         <div class="sub-block">
             <label>Автоматическая модерация комментариев</label>
             <input type="number" min="0" placeholder="Введите минуты" name="auto_moderation"
-                    {% if task and task.comment %}value={{ task.comment.auto_moderation|safe }}{% endif %}>
+                    {% if task and task.comment %}value="{{ task.comment.auto_moderation|safe }}"{% endif %}>
             <small>Отправьте боту время в минутах. Если за это время комментарии не будут проверены модерацией, то они
                 будут опубликованы без проверки</small>
         </div>
@@ -623,12 +634,12 @@
 
 
         <div class="sub-block" style="margin-top: 30px;">
-            <button onclick="toggleTargetList()" class="btn">Показать/Скрыть список целевых действий</button>
+            <button onclick="toggleTargetList()"  type="button" class="btn">Показать/Скрыть список целевых действий</button>
             <div id="targetActionList" class="hidden" style="margin-top: 10px; border: 1px solid #ccc; padding: 10px;">
                 {% if task %}
                     {% for action in task.action.all %}
-                        <ul id="targetActionsUl">https://www.google.com/ 10% 10мин бот
-                            <button><a href="#" class="btn">Удалить</a></button>
+                        <ul id="targetActionsUl">{{ action.link }}
+                            <button><a href="{% url "delite_action"  action.id %}" class="btn">Удалить</a></button>
                         </ul>
                     {% endfor %}
                 {% endif %}
@@ -637,7 +648,7 @@
 
         <div class="sub-block">
             <label>Ссылка на канал/бота</label>
-            <input type="number" id="delayMinutes" min="0" name="action_link" placeholder="Введите задержку в минутах">
+            <input type="text" id="delayMinutes" min="0" name="action_link" placeholder="Введите задержку в минутах">
             <small>Отправь ссылку на бота/канал</small>
         </div>
 

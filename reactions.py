@@ -22,7 +22,7 @@ from app.models import SubscribeTask, ActionTask, Task, ViewTask, ReactionTask, 
 
 
 async def get_ai_reaction(text, index):
-    prompt = "Напиши эмодзи, которые подходят к этому посту через ;"
+    prompt = "Напиши эмодзи, которые подходят к этому посту"
     text = ai.get_answer(prompt=prompt, text=text)
     if text:
         reactions = await get_text_reactions(text, index=index)
@@ -43,18 +43,15 @@ async def get_text_reactions(text, index=None):
     return reactions
 
 
-async def get_reactions_list(client, task, entity, message_id):
+async def get_reactions_list(client, task, message):
     reactions_list = []
     if await sync_to_async(lambda: task.reaction.basic_reactions)():
         basic_reactions = await sync_to_async(lambda: task.reaction.basic_reactions.reactions)()
         reactions_list += await get_text_reactions(basic_reactions)
 
-    # Получаем сообщение с проверкой
-    messages = await client.get_messages(entity, ids=[message_id])
-    if not messages:
+    channel_link = await sync_to_async(lambda: task.channel_link)()
+    if not message:
         return reactions_list
-
-    message = messages[0]
 
     if await sync_to_async(lambda: task.reaction.user_reactions)():
         if hasattr(message, 'reactions') and message.reactions and hasattr(message.reactions, 'results'):
@@ -80,41 +77,56 @@ async def get_reactions_list(client, task, entity, message_id):
 
 async def reaction_process(reaction_task: ReactionTask):
     task = await sync_to_async(lambda: reaction_task.task)()
+    task_id = await sync_to_async(lambda: task.id)()
     # Получаем сессии асинхронно
-    sessions = await sync_to_async(list)(reaction_task.sessions.all())
+    sessions = await sync_to_async(list)(reaction_task.sessions.all().order_by('id'))
+    channel_link = await sync_to_async(lambda: task.channel_link)()
+    message_id = await sync_to_async(lambda: reaction_task.message_id)()
+    message_text = await sync_to_async(lambda: reaction_task.message_text)()
+    session = await sync_to_async(task.subscribed_sessions.first)()
+    client = await constant_functions.activate_session(session)
+    reactions_list = await get_reactions_list(client=client, task=task, message=message_text)
+    view_persent = await sync_to_async(lambda: task.reaction.view_persent)()
+    if reactions_list:
+        while True:
+            task = await sync_to_async(Task.objects.get)(id=task_id)
+            subscribed_sessions = await sync_to_async(list)(task.subscribed_sessions.all())
+            for session in sessions:
+                if session in subscribed_sessions:
+                    client = await constant_functions.activate_session(session)
+                    random_percent = random.randint(1, 100)
+                    if random_percent <= view_persent:
+                        try:
+                            if reactions_list:  # Проверяем, что есть реакции для выбора
+                                try:
+                                    while True:
+                                        if not reactions_list:
+                                            sessions.remove(session)
+                                            break
+                                        reaction = random.choice(reactions_list)
+                                        try:
+                                            await client(SendReactionRequest(
+                                                peer=channel_link,
+                                                msg_id=message_id,
+                                                reaction=[types.ReactionEmoji(emoticon=reaction)]
+                                            ))
+                                            sessions.remove(session)
+                                            break
+                                        except telethon.errors.FloodWaitError:
+                                            break
+                                        except Exception as e:
+                                            print(f'set_reaction: {e}')
+                                            reactions_list.remove(reaction)
 
-    for session in sessions:
-        view_persent = await sync_to_async(lambda: task.reaction.view_persent)()
-        random_percent = random.randint(1, 100)
-        if random_percent <= view_persent:
-            try:
-                client = await constant_functions.activate_session(session)
-                entity = await client.get_entity(task.channel_link)
-                message_id = await sync_to_async(lambda: reaction_task.message_id)()
-                reactions_list = await get_reactions_list(client=client, task=task, entity=entity, message_id=message_id)
-
-                if reactions_list:  # Проверяем, что есть реакции для выбора
-                    try:
-                        while True:
-                            if not reactions_list:
-                                break
-                            reaction = random.choice(reactions_list)
-                            try:
-                                await client(SendReactionRequest(
-                                    peer=entity,
-                                    msg_id=message_id,
-                                    reaction=[types.ReactionEmoji(emoticon=reaction)]
-                                ))
-                                break
-                            except Exception:
-                                reactions_list.remove(reaction)
-
-                    except Exception as e:
-                        print(f'reaction_process: {e}')
-            except telethon.errors.rpcerrorlist.AuthKeyUnregisteredError:
-                await sync_to_async(session.delete)()
-            await client.disconnect()
-        await asyncio.sleep(reaction_task.sleep_time)
+                                except Exception as e:
+                                    print(f'reaction_process: {e}')
+                        except telethon.errors.rpcerrorlist.AuthKeyUnregisteredError:
+                            await sync_to_async(session.delete)()
+                            sessions.remove(session)
+                    await asyncio.sleep(reaction_task.sleep_time)
+            if len(sessions) == 0:
+                break
+            await asyncio.sleep(5)
 
     # Удаляем задачу асинхронно
     await sync_to_async(reaction_task.delete)()
@@ -132,4 +144,4 @@ async def main():
             # Исправлено: было reaction_task(reaction_task), должно быть reaction_process(reaction_task)
             asyncio.create_task(reaction_process(reaction_task))
 
-        await asyncio.sleep(60)
+        await asyncio.sleep(5)

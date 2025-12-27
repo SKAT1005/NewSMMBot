@@ -268,16 +268,6 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="apiIdInput">API ID</label>
-                    <input type="text" name="api_id" id="apiIdInput" placeholder="Введите API ID">
-                </div>
-
-                <div class="form-group">
-                    <label for="apiIdInput">API HASH</label>
-                    <input type="text" name="api_hash" id="apiHashInput" placeholder="Введите API HASH">
-                </div>
-
-                <div class="form-group">
                     <label for="donorIdInput" class="required">Ник донора</label>
                     <input type="text" name="donor_id" id="donorIdInput" required placeholder="Введите ID донора">
                     <div class="error-message" id="donorIdError">Это поле обязательно для заполнения</div>
@@ -336,7 +326,6 @@
         function validateForm() {
             const fileFilled = fileInput.files.length > 0 && validateFileExtension(fileInput.files[0]);
             const phoneFilled = phoneInput.value.trim() !== '';
-            const apiIdFilled = apiIdInput.value.trim() !== '';
             const donorIdFilled = donorIdInput.value.trim() !== '';
             const codeFilled = telegramCode.value.trim() !== '';
 
@@ -370,14 +359,14 @@
             }
 
             // Проверяем два возможных варианта заполнения
-            if ((fileFilled) || (phoneFilled && apiIdFilled)) {
+            if ((fileFilled) || (phoneFilled)) {
                 formError.style.display = 'none';
 
                 // Показываем соответствующую кнопку
                 if (fileFilled) {
                     addSessionBtn.style.display = 'block';
                     getCodeBtn.style.display = 'none';
-                } else if (phoneFilled && apiIdFilled) {
+                } else if (phoneFilled) {
                     getCodeBtn.style.display = 'block';
                     // Если код уже введен, показываем кнопку добавления
                     if (codeFilled) {
@@ -396,7 +385,6 @@
         // Слушаем изменения во всех полях
         fileInput.addEventListener('change', validateForm);
         phoneInput.addEventListener('input', validateForm);
-        apiIdInput.addEventListener('input', validateForm);
         donorIdInput.addEventListener('input', validateForm);
         passwordInput.addEventListener('input', validateForm);
         telegramCode.addEventListener('input', validateForm);
@@ -405,9 +393,7 @@
         getCodeBtn.addEventListener('click', function () {
             // Собираем данные для отправки (теперь только phone, api_id и api_hash)
             const formData = {
-                phone: phoneInput.value.trim(),
-                api_id: apiIdInput.value.trim(),
-                api_hash: apiHashInput.value.trim() // Используем поле пароля как api_hash
+                phone: phoneInput.value.trim() // Используем поле пароля как api_hash
             };
 
             // Отправляем POST-запрос

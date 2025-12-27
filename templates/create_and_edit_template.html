@@ -218,393 +218,421 @@
 </head>
 <body>
 <div class="container">
-<div class="top-buttons">
-            <button><a href="{% url "task_list" %}" class="btn">Список задач</a></button>
-            <button><a href="{% url "task_detail" %}" class="btn">Создать задачу</a></button>
-            <button><a href="{% url "template_detail" %}" class="btn">Создать шаблон</a></button>
-            <button><a href="{% url "template_list" %}" class="btn">Список шаблонов</a></button>
-            <button><a href="{% url "add_session" %}" class="btn">Добавить аккаунт</a></button>
-            <button><a href="{% url "comments" %}" class="btn">Комментарии</a></button>
-        </div>
-<form method="post">
-{% csrf_token %}
-    <h2>Создание Шаблона</h2>
-
-    <div class="block">
-        <label>Название шаблона</label>
-        <input type="text" required
-               {% if template and template.name %}value={{ template.name|safe }}{% endif %} name="name">
+    <div class="top-buttons">
+        <button><a href="{% url "task_list" %}" class="btn">Список задач</a></button>
+        <button><a href="{% url "task_detail" %}" class="btn">Создать задачу</a></button>
+        <button><a href="{% url "template_detail" %}" class="btn">Создать шаблон</a></button>
+        <button><a href="{% url "template_list" %}" class="btn">Список шаблонов</a></button>
+        <button><a href="{% url "add_session" %}" class="btn">Добавить аккаунт</a></button>
+        <button><a href="{% url "comments" %}" class="btn">Комментарии</a></button>
     </div>
-
-
-    <div class="block">
-        <button type="button" onclick="toggleBlock('subscribersBlock')">Подписчики</button>
-        <button type="button" onclick="toggleBlock('viewsBlock')">Просмотры</button>
-        <button type="button" onclick="toggleBlock('reactionsBlock')">Реакции</button>
-        <button type="button" onclick="toggleBlock('adPostsBlock')">Рекламные посты</button>
-        <button type="button" onclick="toggleBlock('historyBlock')">История</button>
-        <button type="button" onclick="toggleBlock('commentsBlock')">Комментарии</button>
-    </div>
-
-    <!-- Подписчики -->
-    <div id="subscribersBlock" class="block hidden">
-        <label>Соотношение полов</label>
-        <div class="gender-inputs">
-            М: <input type="number" id="male" name="male" min="0" max="100"
-                      value={% if template  and template.subscribe %}{{ template.subscribe.male|safe }}{% else %}"0"{% endif %}>
-            Ж: <input type="number" id="female" name="female" min="0" max="100"
-                      value={% if template  and template.subscribe %}{{ template.subscribe.female|safe }}{% else %}"0"{% endif %}>
-        </div>
-        <small id="genderWarning" class="hidden">Сумма не должна превышать 100</small>
-
-        <h3>Лесенка с привязкой к старту</h3>
-        <div class="sub-block">
-            <label>Формат</label>
-            <select id="viewsStartMode" name="start_ladder_type">
-                <option value="percent"
-                        {% if template and template.subscribe.start_ladder and template.subscribe.start_ladder.is_percent %}selected{% endif %}>
-                    В процентах
-                </option>
-                <option value="amount"
-                        {% if template and template.subscribe.start_ladder and not template.subscribe.start_ladder.is_percent %}selected{% endif %}>
-                    В количестве
-                </option>
-            </select>
-
-            <input type="text" id="viewsStartInput" name="start_ladder_param" placeholder="Введите значение"
-                      {% if template and template.subscribe.start_ladder %}value="{{ template.subscribe.start_ladder.param|safe }}" {% endif %}>
-        </div>
-
-        <h3>Лесенка с привязкой ко времени</h3>
-        <div class="sub-block">
-            <label>Формат</label>
-            <select id="viewsStartMode" name="time_ladder_type">
-                <option value="percent"
-                        {% if template and template.subscribe.time_ladder and template.subscribe.time_ladder.is_percent %}selected{% endif %}>
-                    В процентах
-                </option>
-                <option value="amount"
-                        {% if template and template.subscribe.time_ladder and not template.subscribe.time_ladder.is_percent %}selected{% endif %}>
-                    В количестве
-                </option>
-            </select>
-            <input type="text" id="viewsStartInput" name="time_ladder_param" placeholder="Введите значение"
-                   {% if template and template.subscribe.time_ladder %}value={{ template.subscribe.time_ladder.param|safe }} {% endif %}>
-        </div>
+    <form method="post">
+        {% csrf_token %}
+        <h2>Создание Шаблона</h2>
 
         <div class="block">
-            <label for="unsubscribes">Отписки</label>
-            <input type="text" id="unsubscribes" name="unsubscribes" min="0"
-                   {% if template and template.subscribe %}value={{ template.subscribe.unsubscribes|safe }} {% endif %}>
-        </div>
-    </div>
-
-    <!-- Просмотры -->
-    <div id="viewsBlock" class="block hidden">
-        <h3>Лесенка с привязкой к старту</h3>
-        <div class="sub-block">
-            <label>Формат</label>
-            <select id="viewsStartMode" name="view_start_ladder_type">
-                <option value="percent"
-                        {% if template and template.view.start_ladder and template.view.start_ladder.is_percent %}selected{% endif %}>
-                    В процентах
-                </option>
-                <option value="amount"
-                        {% if template and  template.view.start_ladder and not template.view.start_ladder.is_percent %}selected{% endif %}>
-                    В количестве
-                </option>
-            </select>
-            <input type="text" id="viewsStartInput" name="view_start_ladder_param" placeholder="Введите значение"
-                   {% if template and template.view.start_ladder and template.view.start_ladder %}value={{ template.view.start_ladder.param|safe }} {% endif %}>
-            <input type="text" id="scatterTime" name="view_start_ladder_spread" placeholder="Разброс"
-                   {% if template and template.view.time_ladder %}value={{ template.view.time_ladder.spread|safe }} {% endif %}>
+            <label>Название шаблона</label>
+            <input type="text" required
+                   {% if template and template.name %}value="{{ template.name|safe }}"{% endif %} name="name">
         </div>
 
-        <h3>Лесенка с привязкой ко времени</h3>
-        <div class="sub-block">
-            <label>Формат</label>
-            <select id="viewsStartMode" name="view_time_ladder_type">
-                <option value="percent"
-                        {% if template and template.view.time_ladder and template.view.time_ladder.is_percent %}selected{% endif %}>
-                    В процентах
-                </option>
-                <option value="amount"
-                        {% if template and template.view.time_ladder and not template.view.time_ladder.is_percent %}selected{% endif %}>
-                    В количестве
-                </option>
-            </select>
-            <input type="text" id="viewsStartInput" name="view_time_ladder_param" placeholder="Введите значение"
-                   {% if template and template.view.time_ladder %}value={{ template.view.time_ladder.param|safe }} {% endif %}>
-            <input type="text" id="scatterTime" name="view_time_ladder_spread" placeholder="Разброс"
-                   {% if template and template.view.time_ladder %}value={{ template.view.time_ladder.spread|safe }} {% endif %}>
-        </div>
 
         <div class="block">
-            <label>Охваты в выходные дни</label>
-            <input type="number" min="1" name="holiday"
-                   {% if template and template.view %}value="{{ template.view.holiday|safe }}"{% endif %} max="100">
-        </div>
-
-        <div class="block">
-            <label>На предыдущие посты</label>
-            <input type="text" name="last_post" {% if template and template.view %}value="{{ template.view.last_post|safe }}"{% endif %}
-                   placeholder="Описание охватов на
-                   предыдущие посты">
-        </div>
-
-        <div class="block">
-            <label>На старые посты</label>
-            <input type="number" name="old_post" {% if template and template.view %}value="{{ template.view.old_post|safe }}"{% endif %}
-                   placeholder="Количество постов,
-                   которые будут просмотрены при подписке">
-        </div>
-    </div>
-
-    <!-- Блок Реакции -->
-    <div id="reactionsBlock" class="block hidden">
-        <h3>Реакции</h3>
-
-        <!-- Лесенка с привязкой к старту в процентах -->
-        <div class="sub-block">
-            <label>Лесенка с привязкой к старту (в процентах)</label>
-            <input type="text" min="0" max="100" placeholder="Введите значение" name="reaction_start_ladder"
-                   {% if template and template.reaction %}value={{ template.reaction.start_ladder.param|safe }}{% endif %}>
-        </div>
-
-        <!-- Основные реакции -->
-        <div class="sub-block">
-            <label>Основные реакции</label>
-            <div class="input-group">
-                <div><input type="text" placeholder="Название реакции" name="reaction_name"
-                            {% if template and template.reaction %}value=
-                                {{ template.reaction.basic_reactions.reactions|safe }}{% endif %}></div>
-                <div><input type="number" min="0" placeholder="Мин. кол-во" name="basic_min_number"
-                            {% if template and template.reaction %}value=
-                                {{ template.reaction.basic_reactions.min_reaction|safe }}{% endif %}></div>
-                <div><input type="number" min="0" placeholder="Макс. кол-во" name="basic_max_number"
-                            {% if template and template.reaction %}value=
-                                {{ template.reaction.basic_reactions.max_reaction|safe }}{% endif %}></div>
-            </div>
-        </div>
-
-        <!-- Реакции из текста -->
-        <div class="sub-block">
-            <label>Реакции из текста</label>
-            <div class="input-group">
-                <div><input type="number" min="1" placeholder="Кол-во типов" name="text_reaction_number"
-                            {% if template and template.reaction %}value=
-                                {{ template.reaction.text_reactions.type_count|safe }}{% endif %}></div>
-                <div><input type="number" min="0" placeholder="Мин. кол-во" name="text_min_number"
-                            {% if template and template.reaction %}value=
-                                {{ template.reaction.text_reactions.min_reaction|safe }}{% endif %}></div>
-                <div><input type="number" min="0" placeholder="Макс. кол-во" name="text_max_number"
-                            {% if template and template.reaction %}value=
-                                {{ template.reaction.text_reactions.max_reaction|safe }}{% endif %}></div>
-            </div>
-        </div>
-
-        <!-- Реакции от пользователей -->
-        <div class="sub-block">
-            <label>Реакции от пользователей</label>
-            <div class="input-group">
-                <div><input type="number" min="1" placeholder="Кол-во типов" name="user_reaction_number"
-                            {% if template and template.reaction %}value=
-                                {{ template.reaction.user_reactions.type_count|safe }}{% endif %}></div>
-                <div><input type="number" min="0" placeholder="Мин. кол-во" name="user_min_number"
-                            {% if template and template.reaction %}value=
-                                {{ template.reaction.user_reactions.min_reaction|safe }}{% endif %}></div>
-                <div><input type="number" min="0" placeholder="Макс. кол-во" name="user_max_number"
-                            {% if template and template.reaction %}value=
-                                {{ template.reaction.user_reactions.max_reaction|safe }}{% endif %}></div>
-            </div>
-        </div>
-
-        <!-- Реакции от ИИ -->
-        <div class="sub-block">
-            <label>Реакции от ИИ</label>
-            <div class="input-group">
-                <div><input type="number" min="1" placeholder="Кол-во типов" name="ai_reaction_number"
-                            {% if template and template.reaction %}value={{ template.reaction.ai_reactions.type_count|safe }}{% endif %}>
-                </div>
-                <div><input type="number" min="0" placeholder="Мин. кол-во" name="ai_min_number"
-                            {% if template and template.reaction %}value=
-                                {{ template.reaction.ai_reactions.min_reaction|safe }}{% endif %}></div>
-                <div><input type="number" min="0" placeholder="Макс. кол-во" name="ai_max_number"
-                            {% if template and template.reaction %}value=
-                                {{ template.reaction.ai_reactions.max_reaction|safe }}{% endif %}></div>
-            </div>
-        </div>
-
-        <!-- Реакции на старые посты -->
-        <div class="sub-block">
-            <label>Реакции на старые посты</label>
-            <input type="number" min="1" placeholder="Кол-во последних постов" name="reaction_old_post"
-                    {% if template and template.reaction %}
-                   value={{ template.reaction.last_post_reaction|safe }}
-                           {% else %}
-                           value="2"
-                    {% endif %}>
-        </div>
-    </div>
-
-    <div id="adPostsBlock" class="block hidden">
-        <h3>Рекламные посты</h3>
-
-        <!-- Определение рекламных постов -->
-        <div class="sub-block">
-            <label>Определение рекламных постов</label>
-            <textarea rows="4" placeholder="Введите описание или критерии" name="ad_detect">{% if template and template.ad %}
-                {{ template.ad.ad_detect }}{% endif %}</textarea>
+            <button type="button" onclick="toggleBlock('subscribersBlock')">Подписчики</button>
+            <button type="button" onclick="toggleBlock('viewsBlock')">Просмотры</button>
+            <button type="button" onclick="toggleBlock('reactionsBlock')">Реакции</button>
+            <button type="button" onclick="toggleBlock('adPostsBlock')">Рекламные посты</button>
+            <button type="button" onclick="toggleBlock('historyBlock')">История</button>
+            <button type="button" onclick="toggleBlock('commentsBlock')">Комментарии</button>
         </div>
 
         <!-- Подписчики -->
-        <div class="sub-block">
-            <label>Подписчики</label>
-            <input type="number" min="0" max="100" placeholder="% аккаунтов, которые подпишутся на рекламу"
-                   name="ad_subscribe_percent"
-                   {% if template and template.ad %}value={{ template.ad.subscribe_percent|safe }}{% endif %}>
-        </div>
+        <div id="subscribersBlock" class="block hidden">
+            <label>Соотношение полов</label>
+            <div class="gender-inputs">
+                М: <input type="number" id="male" name="male" min="0" max="100"
+                          value=
+                                  "{% if template  and template.subscribe %}{{ template.subscribe.male|safe }}{% else %}0{% endif %}">
+                Ж: <input type="number" id="female" name="female" min="0" max="100"
+                          value=
+                                  "{% if template  and template.subscribe %}{{ template.subscribe.female|safe }}{% else %}0{% endif %}">
+            </div>
+            <small id="genderWarning" class="hidden">Сумма не должна превышать 100</small>
 
-        <!-- Просмотры -->
-        <div class="sub-block">
-            <label>Просмотры</label>
-            <input type="text" placeholder="% от подписавшихся на рекламу, которые будут читать контент"
-                   name="ad_start_ladder" {% if template and template.ad %}value={{ template.ad.start_ladder|safe }}{% endif %}>
-            <small>Лесенка по старту (по умолчанию): 5/10; 4/35; 3/45; 6/150;13/280; 11/390; 28/1440; 22/2880;
-                8/4740</small>
-        </div>
+            <h3>Лесенка с привязкой к старту</h3>
+            <div class="sub-block">
+                <label>Формат</label>
+                <select id="viewsStartMode" name="start_ladder_type">
+                    <option value="percent"
+                            {% if template and template.subscribe.start_ladder and template.subscribe.start_ladder.is_percent %}selected{% endif %}>
+                        В процентах
+                    </option>
+                    <option value="amount"
+                            {% if template and template.subscribe.start_ladder and not template.subscribe.start_ladder.is_percent %}selected{% endif %}>
+                        В количестве
+                    </option>
+                </select>
 
-        <!-- Отписка -->
-        <div class="sub-block">
-            <label>Отписка</label>
-            <input type="text" placeholder="Процент отписок/минуты" name="ad_unsubscribes"
-                   {% if template and template.ad %}value={{ template.ad.unsubscribes|safe }}{% endif %}>
-            <small>Пример: 20/1440; 40/44640 — 20% отпишутся через 24ч, 40% в течение месяца</small>
-        </div>
+                <input type="text" id="viewsStartInput" name="start_ladder_param" placeholder="Введите значение"
+                       {% if template and template.subscribe.start_ladder %}value="{{ template.subscribe.start_ladder.param|safe }}" {% endif %}>
+                <small>Формат ввода: процент(количество)/минуты; процент(количество)/минуты</small>
+            </div>
 
-        <!-- Реакции в рекламируемом канале -->
-        <div class="sub-block">
-            <label>Реакции в рекламируемом канале</label>
-            <input type="number" min="0" max="100" placeholder="% реакций от количества просмотров"
-                   name="ad_channel_reaction" {% if template and template.ad %}value={{ template.ad.channel_reaction|safe }}{% endif %}>
-        </div>
+            <h3>Лесенка с привязкой ко времени</h3>
+            <div class="sub-block">
+                <label>Формат</label>
+                <select id="viewsStartMode" name="time_ladder_type">
+                    <option value="percent"
+                            {% if template and template.subscribe.time_ladder and template.subscribe.time_ladder.is_percent %}selected{% endif %}>
+                        В процентах
+                    </option>
+                    <option value="amount"
+                            {% if template and template.subscribe.time_ladder and not template.subscribe.time_ladder.is_percent %}selected{% endif %}>
+                        В количестве
+                    </option>
+                </select>
+                <input type="text" id="viewsStartInput" name="time_ladder_param" placeholder="Введите значение"
+                       {% if template and template.subscribe.time_ladder %}value="{{ template.subscribe.time_ladder.param|safe }}" {% endif %}>
+                <small>Формат ввода: процент(количество)/HH:MM-HH:MM; процент(количество)/HH:MM-HH:MM </small>
+            </div>
 
-        <!-- Реакции на рекламный пост -->
-        <div class="sub-block">
-            <label>Реакции на рекламный пост</label>
-            <input type="number" min="0" max="100" placeholder="% от общего числа реакций для рекламных постов"
-                   name="ad_reaction" {% if template and template.ad %}value={{ template.ad.ad_reaction|safe }}{% endif %}>
-            <small>Применима только накрутка основных, из текста и от пользователей</small>
-        </div>
-
-        <!-- Комментарии -->
-        <div class="sub-block">
-            <label>Комментарии</label>
-            <input type="number" min="0" placeholder="Количество комментариев под рекламными постами" name="ad_comment"
-                   {% if template and template.ad %}value={{ template.ad.comment|safe }}{% endif %}>
-        </div>
-    </div>
-
-    <div id="historyBlock" class="block hidden">
-        <h3>История</h3>
-
-        <!-- Общее количество просмотров -->
-        <div class="sub-block">
-            <label>Общее количество просмотров</label>
-            <input type="number" id="totalHistoryViews" min="0" placeholder="Введите общее количество просмотров"
-                   name="history_view_count"
-                   {% if template and template.history %}value={{ template.history.view_count|safe }}{% endif %}>
-        </div>
-
-        <!-- Лесенка просмотров -->
-        <div class="sub-block">
-            <label>Лесенка просмотров</label>
-            <input type="text" placeholder="Пример: 20/5; 10/20; 70/60" name="history_view_ladder_param"
-                   {% if template and template.history %}value={{ template.history.view_ladder.param|safe }}{% endif %}>
-            <small>Формат: процент от общего количества просмотров / минуты после выхода поста</small>
-        </div>
-
-        <!-- Разброс просмотров -->
-        <div class="sub-block">
-            <label>Разброс просмотров</label>
-            <input type="text" placeholder="Пример: 10/20" name="history_view_ladder_spread"
-                   {% if template and template.history %}value={{ template.history.view_ladder.spread|safe }}{% endif %}>
-            <small>Формат: -процент/+процент</small>
-        </div>
-
-        <!-- Реакции на истории -->
-        <div class="sub-block">
-            <label>Реакции на истории</label>
-            <input type="number" id="historyReactions" min="0" placeholder="Общее количество реакций"
-                   name="history_reaction_count"
-                   {% if template and template.history %}value={{ template.history.reaction_count|safe }}{% endif %}>
-            <small>Не должно превышать общее количество просмотров</small>
-            <div id="reactionWarning" style="color: red; display: none;">Реакции не могут превышать количество
-                просмотров!
+            <div class="block">
+                <label for="unsubscribes">Отписки</label>
+                <input type="text" id="unsubscribes" name="unsubscribes" min="0"
+                       {% if template and template.subscribe %}value="{{ template.subscribe.unsubscribes|safe }}" {% endif %}>
             </div>
         </div>
 
-        <!-- Лесенка реакций -->
-        <div class="sub-block">
-            <label>Лесенка реакций</label>
-            <input type="text" placeholder="Пример: 20/5; 10/20; 70/60" name="history_reaction_ladder_param"
-                   {% if template and template.history %}value={{ template.history.reaction_ladder.param|safe }}{% endif %}>
-            <small>Формат: процент от общего количества реакций / минуты после выхода поста</small>
+        <!-- Просмотры -->
+        <div id="viewsBlock" class="block hidden">
+            <h3>Лесенка с привязкой к старту</h3>
+            <div class="sub-block">
+                <label>Формат</label>
+                <select id="viewsStartMode" name="view_start_ladder_type">
+                    <option value="percent"
+                            {% if template and template.view.start_ladder and template.view.start_ladder.is_percent %}selected{% endif %}>
+                        В процентах
+                    </option>
+                    <option value="amount"
+                            {% if template and  template.view.start_ladder and not template.view.start_ladder.is_percent %}selected{% endif %}>
+                        В количестве
+                    </option>
+                </select>
+                <input type="text" id="viewsStartInput" name="view_start_ladder_param" placeholder="Введите значение"
+                       {% if template and template.view.start_ladder and template.view.start_ladder %}value="{{ template.view.start_ladder.param|safe }}" {% endif %}>
+                <input type="text" id="scatterTime" name="view_start_ladder_spread" placeholder="Разброс"
+                       {% if template and template.view.time_ladder %}value="{{ template.view.time_ladder.spread|safe }}" {% endif %}>
+                <small>Формат ввода: процент(количество)/минуты; процент(количество)/минуты</small>
+            </div>
+
+            <h3>Лесенка с привязкой ко времени</h3>
+            <div class="sub-block">
+                <label>Формат</label>
+                <select id="viewsStartMode" name="view_time_ladder_type">
+                    <option value="percent"
+                            {% if template and template.view.time_ladder and template.view.time_ladder.is_percent %}selected{% endif %}>
+                        В процентах
+                    </option>
+                    <option value="amount"
+                            {% if template and template.view.time_ladder and not template.view.time_ladder.is_percent %}selected{% endif %}>
+                        В количестве
+                    </option>
+                </select>
+                <input type="text" id="viewsStartInput" name="view_time_ladder_param" placeholder="Введите значение"
+                       {% if template and template.view.time_ladder %}value="{{ template.view.time_ladder.param|safe }}" {% endif %}>
+                <small>Формат ввода: процент(количество)/HH:MM-HH:MM; процент(количество)/HH:MM-HH:MM </small>
+                <input type="text" id="scatterTime" name="view_time_ladder_spread" placeholder="Разброс"
+                       {% if template and template.view.time_ladder %}value="{{ template.view.time_ladder.spread|safe }}" {% endif %}>
+            </div>
+
+            <div class="block">
+                <label>Охваты в выходные дни</label>
+                <input type="number" min="1" name="holiday"
+                       {% if template and template.view %}value="{{ template.view.holiday|safe }}"{% endif %} max="100">
+            </div>
+
+            <div class="block">
+                <label>На предыдущие посты</label>
+                <input type="text" name="last_post"
+                       {% if template and template.view %}value="{{ template.view.last_post|safe }}"{% endif %}
+                       placeholder="Описание охватов на
+                   предыдущие посты">
+            </div>
+
+            <div class="block">
+                <label>На старые посты</label>
+                <input type="number" name="old_post"
+                       {% if template and template.view %}value="{{ template.view.old_post|safe }}"{% endif %}
+                       placeholder="Количество постов,
+                   которые будут просмотрены при подписке">
+            </div>
         </div>
 
-        <div class="sub-block">
-            <label>Разброс реакций</label>
-            <input type="text" placeholder="Пример: 10/20" name="history_reaction_ladder_spread"
-                   {% if template and template.history %}value={{ template.history.reaction_ladder.spread|safe }}{% endif %}>
-            <small>Формат: -процент/+процент</small>
+        <!-- Блок Реакции -->
+        <div id="reactionsBlock" class="block hidden">
+            <h3>Реакции</h3>
+
+            <!-- Лесенка с привязкой к старту в процентах -->
+            <div class="sub-block">
+                <label>Лесенка с привязкой к старту (в процентах)</label>
+                <input type="text" min="0" max="100" placeholder="Введите значение" name="reaction_start_ladder"
+                       {% if template and template.reaction %}value=
+                           "{{ template.reaction.start_ladder.param|safe }}"{% endif %}>
+
+            <small>Формат ввода: процент/минуты; процент/минуты</small>
+            </div>
+
+            <!-- Основные реакции -->
+            <div class="sub-block">
+                <label>Основные реакции</label>
+                <div class="input-group">
+                    <div><input type="text" placeholder="Название реакции" name="reaction_name"
+                                {% if template and template.reaction %}value=
+                                    "{{ template.reaction.basic_reactions.reactions|safe }}"{% endif %}></div>
+                    <div><input type="number" min="0" placeholder="Мин. кол-во" name="basic_min_number"
+                                {% if template and template.reaction %}value=
+                                    "{{ template.reaction.basic_reactions.min_reaction|safe }}"{% endif %}></div>
+                    <div><input type="number" min="0" placeholder="Макс. кол-во" name="basic_max_number"
+                                {% if template and template.reaction %}value=
+                                    "{{ template.reaction.basic_reactions.max_reaction|safe }}"{% endif %}></div>
+                </div>
+            </div>
+
+            <!-- Реакции из текста -->
+            <div class="sub-block">
+                <label>Реакции из текста</label>
+                <div class="input-group">
+                    <div><input type="number" min="1" placeholder="Кол-во типов" name="text_reaction_number"
+                                {% if template and template.reaction %}value=
+                                    "{{ template.reaction.text_reactions.type_count|safe }}"{% endif %}></div>
+                    <div><input type="number" min="0" placeholder="Мин. кол-во" name="text_min_number"
+                                {% if template and template.reaction %}value=
+                                    "{{ template.reaction.text_reactions.min_reaction|safe }}"{% endif %}></div>
+                    <div><input type="number" min="0" placeholder="Макс. кол-во" name="text_max_number"
+                                {% if template and template.reaction %}value=
+                                    "{{ template.reaction.text_reactions.max_reaction|safe }}"{% endif %}></div>
+                </div>
+            </div>
+
+            <!-- Реакции от пользователей -->
+            <div class="sub-block">
+                <label>Реакции от пользователей</label>
+                <div class="input-group">
+                    <div><input type="number" min="1" placeholder="Кол-во типов" name="user_reaction_number"
+                                {% if template and template.reaction %}value=
+                                    "{{ template.reaction.user_reactions.type_count|safe }}"{% endif %}></div>
+                    <div><input type="number" min="0" placeholder="Мин. кол-во" name="user_min_number"
+                                {% if template and template.reaction %}value=
+                                    "{{ template.reaction.user_reactions.min_reaction|safe }}"{% endif %}></div>
+                    <div><input type="number" min="0" placeholder="Макс. кол-во" name="user_max_number"
+                                {% if template and template.reaction %}value=
+                                    "{{ template.reaction.user_reactions.max_reaction|safe }}"{% endif %}></div>
+                </div>
+            </div>
+
+            <!-- Реакции от ИИ -->
+            <div class="sub-block">
+                <label>Реакции от ИИ</label>
+                <div class="input-group">
+                    <div><input type="number" min="1" placeholder="Кол-во типов" name="ai_reaction_number"
+                                {% if template and template.reaction %}value=
+                                    "{{ template.reaction.ai_reactions.type_count|safe }}"{% endif %}>
+                    </div>
+                    <div><input type="number" min="0" placeholder="Мин. кол-во" name="ai_min_number"
+                                {% if template and template.reaction %}value=
+                                    "{{ template.reaction.ai_reactions.min_reaction|safe }}"{% endif %}></div>
+                    <div><input type="number" min="0" placeholder="Макс. кол-во" name="ai_max_number"
+                                {% if template and template.reaction %}value=
+                                    "{{ template.reaction.ai_reactions.max_reaction|safe }}"{% endif %}></div>
+                </div>
+            </div>
+
+            <!-- Реакции на старые посты -->
+            <div class="sub-block">
+                <label>Реакции на старые посты</label>
+                <input type="number" min="1" placeholder="Кол-во последних постов" name="reaction_old_post"
+                        {% if template and template.reaction %}
+                       value="{{ template.reaction.last_post_reaction|safe }}"
+                               {% else %}
+                               value="2"
+                        {% endif %}>
+            </div>
         </div>
-    </div>
 
-    <div id="commentsBlock" class="block hidden">
-        <h3>Комментарии</h3>
+        <div id="adPostsBlock" class="block hidden">
+            <h3>Рекламные посты</h3>
 
-        <!-- Минимальное количество комментариев -->
-        <div class="sub-block">
-            <label>Минимальное количество комментариев</label>
-            <input type="number" min="0" placeholder="Введите минимум" name="min_comment"
-                    {% if template and template.comment %}value={{ template.comment.min_comment|safe }}{% endif %}>
+            <!-- Определение рекламных постов -->
+            <div class="sub-block">
+                <label>Определение рекламных постов</label>
+                <textarea rows="4" placeholder="Введите описание или критерии"
+                          name="ad_detect">{% if template and template.ad %}
+                    {{ template.ad.ad_detect }}{% endif %}</textarea>
+            </div>
+
+            <!-- Подписчики -->
+            <div class="sub-block">
+                <label>Подписчики</label>
+                <input type="number" min="0" max="100" placeholder="% аккаунтов, которые подпишутся на рекламу"
+                       name="ad_subscribe_percent"
+                       {% if template and template.ad %}value="{{ template.ad.subscribe_percent|safe }}"{% endif %}>
+            </div>
+
+            <!-- Просмотры -->
+            <div class="sub-block">
+                <label>Просмотры</label>
+                <input type="text" placeholder="% от подписавшихся на рекламу, которые будут читать контент"
+                       name="ad_start_ladder"
+                       {% if template and template.ad %}value="{{ template.ad.start_ladder|safe }}"{% endif %}>
+                <small>Лесенка по старту (по умолчанию): 5/10; 4/35; 3/45; 6/150;13/280; 11/390; 28/1440; 22/2880;
+                    8/4740</small>
+            </div>
+
+            <!-- Отписка -->
+            <div class="sub-block">
+                <label>Отписка</label>
+                <input type="text" placeholder="Процент отписок/минуты" name="ad_unsubscribes"
+                       {% if template and template.ad %}value="{{ template.ad.unsubscribes|safe }}"{% endif %}>
+                <small>Пример: 20/1440; 40/44640 — 20% отпишутся через 24ч, 40% в течение месяца</small>
+            </div>
+
+            <!-- Реакции в рекламируемом канале -->
+            <div class="sub-block">
+                <label>Реакции в рекламируемом канале</label>
+                <input type="number" min="0" max="100" placeholder="% реакций от количества просмотров"
+                       name="ad_channel_reaction"
+                       {% if template and template.ad %}value="{{ template.ad.channel_reaction|safe }}"{% endif %}>
+            </div>
+
+            <!-- Реакции на рекламный пост -->
+            <div class="sub-block">
+                <label>Реакции на рекламный пост</label>
+                <input type="number" min="0" max="100" placeholder="% от общего числа реакций для рекламных постов"
+                       name="ad_reaction"
+                       {% if template and template.ad %}value="{{ template.ad.ad_reaction|safe }}"{% endif %}>
+                <small>Применима только накрутка основных, из текста и от пользователей</small>
+            </div>
+
+            <!-- Комментарии -->
+            <div class="sub-block">
+                <label>Комментарии</label>
+                <input type="number" min="0" placeholder="Количество комментариев под рекламными постами"
+                       name="ad_comment"
+                       {% if template and template.ad %}value="{{ template.ad.comment|safe }}"{% endif %}>
+            </div>
         </div>
 
-        <!-- Максимальное количество комментариев -->
-        <div class="sub-block">
-            <label>Максимальное количество комментариев</label>
-            <input type="number" min="0" placeholder="Введите максимум" name="max_comment"
-                    {% if template and template.comment %}value={{ template.comment.max_comment|safe }}{% endif %}>
+        <div id="historyBlock" class="block hidden">
+            <h3>История</h3>
+
+            <!-- Общее количество просмотров -->
+            <div class="sub-block">
+                <label>Общее количество просмотров</label>
+                <input type="number" id="totalHistoryViews" min="0" placeholder="Введите общее количество просмотров"
+                       name="history_view_count"
+                       {% if template and template.history %}value="{{ template.history.view_count|safe }}"{% endif %}>
+            </div>
+
+            <!-- Лесенка просмотров -->
+            <div class="sub-block">
+                <label>Лесенка просмотров</label>
+                <input type="text" placeholder="Пример: 20/5; 10/20; 70/60" name="history_view_ladder_param"
+                       {% if template and template.history %}value=
+                           "{{ template.history.view_ladder.param|safe }}"{% endif %}>
+
+            <small>Формат ввода: процент/минуты; процент/минуты</small>
+            </div>
+
+            <!-- Разброс просмотров -->
+            <div class="sub-block">
+                <label>Разброс просмотров</label>
+                <input type="text" placeholder="Пример: 10/20" name="history_view_ladder_spread"
+                       {% if template and template.history %}value=
+                           "{{ template.history.view_ladder.spread|safe }}"{% endif %}>
+                <small>Формат: -процент/+процент</small>
+            </div>
+
+            <!-- Реакции на истории -->
+            <div class="sub-block">
+                <label>Реакции на истории</label>
+                <input type="number" id="historyReactions" min="0" placeholder="Общее количество реакций"
+                       name="history_reaction_count"
+                       {% if template and template.history %}value=
+                           "{{ template.history.reaction_count|safe }}"{% endif %}>
+                <small>Не должно превышать общее количество просмотров</small>
+                <div id="reactionWarning" style="color: red; display: none;">Реакции не могут превышать количество
+                    просмотров!
+                </div>
+            </div>
+
+            <!-- Лесенка реакций -->
+            <div class="sub-block">
+                <label>Лесенка реакций</label>
+                <input type="text" placeholder="Пример: 20/5; 10/20; 70/60" name="history_reaction_ladder_param"
+                       {% if template and template.history %}value=
+                           "{{ template.history.reaction_ladder.param|safe }}"{% endif %}>
+
+            <small>Формат ввода: процент/минуты; процент/минуты</small>
+            </div>
+
+            <div class="sub-block">
+                <label>Разброс реакций</label>
+                <input type="text" placeholder="Пример: 10/20" name="history_reaction_ladder_spread"
+                       {% if template and template.history %}value=
+                           "{{ template.history.reaction_ladder.spread|safe }}"{% endif %}>
+                <small>Формат: -процент/+процент</small>
+            </div>
         </div>
 
-        <!-- Лесенка для комментариев -->
-        <div class="sub-block">
-            <label>Лесенка для комментариев</label>
-            <input type="text" placeholder="Пример: 20/5; 10/20; 70/60" name="ladder"
-                    {% if template and template.comment %}value={{ template.comment.ladder|safe }}{% endif %}>
-            <small>Формат: процент от общего количества комментариев / минуты после выхода поста</small>
+        <div id="commentsBlock" class="block hidden">
+            <h3>Комментарии</h3>
+
+            <!-- Минимальное количество комментариев -->
+            <div class="sub-block">
+                <label>Минимальное количество комментариев</label>
+                <input type="number" min="0" placeholder="Введите минимум" name="min_comment"
+                       {% if template and template.comment %}value="{{ template.comment.min_comment|safe }}"{% endif %}>
+            </div>
+
+            <!-- Максимальное количество комментариев -->
+            <div class="sub-block">
+                <label>Максимальное количество комментариев</label>
+                <input type="number" min="0" placeholder="Введите максимум" name="max_comment"
+                       {% if template and template.comment %}value="{{ template.comment.max_comment|safe }}"{% endif %}>
+            </div>
+
+            <!-- Лесенка для комментариев -->
+            <div class="sub-block">
+                <label>Лесенка для комментариев</label>
+                <input type="text" placeholder="Пример: 20/5; 10/20; 70/60" name="ladder"
+                       {% if template and template.comment %}value="{{ template.comment.ladder|safe }}"{% endif %}>
+
+            <small>Формат ввода: процент/минуты; процент/минуты</small>
+            </div>
+
+            <!-- Автоматическая модерация комментариев -->
+            <div class="sub-block">
+                <label>Автоматическая модерация комментариев</label>
+                <input type="number" min="0" placeholder="Введите минуты" name="auto_moderation"
+                       {% if template and template.comment %}value=
+                           "{{ template.comment.auto_moderation|safe }}"{% endif %}>
+                <small>Отправьте боту время в минутах. Если за это время комментарии не будут проверены модерацией, то
+                    они
+                    будут опубликованы без проверки</small>
+            </div>
         </div>
 
-        <!-- Автоматическая модерация комментариев -->
-        <div class="sub-block">
-            <label>Автоматическая модерация комментариев</label>
-            <input type="number" min="0" placeholder="Введите минуты" name="auto_moderation"
-                    {% if template and template.comment %}value={{ template.comment.auto_moderation|safe }}{% endif %}>
-            <small>Отправьте боту время в минутах. Если за это время комментарии не будут проверены модерацией, то они
-                будут опубликованы без проверки</small>
+
+        <div class="button-group-container">
+            <div class="button-group">
+                <button type="submit" class="btn btn-save">Сохранить шаблон</button>
+                <button class="btn btn-cancel"><a class="btn" href={% url "template_list" %}>Отменить изменение</a>
+                </button>
+                <button class="btn btn-cancel" name="delete">Удалить шаблон</button>
+            </div>
         </div>
-    </div>
 
-
-    <div class="button-group-container">
-        <div class="button-group">
-            <button type="submit" class="btn btn-save">Сохранить шаблон</button>
-            <button class="btn btn-cancel"><a class="btn" href={% url "template_list" %}>Отменить изменение</a></button>
-            <button class="btn btn-cancel" name="delete">Удалить шаблон</button>
-        </div>
-    </div>
-
-</form>
+    </form>
 </div>
 
 <script>

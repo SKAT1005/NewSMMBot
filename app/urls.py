@@ -1,7 +1,7 @@
 from django.urls import path
 
 from .views import auth_view, logout_view, task_list, template_list, TaskDetail, TemplateDetail, AddSessionView, \
-    get_code, comments, confirm_comment, cancel_comment
+    get_code, comments, confirm_comment, cancel_comment, delite_action
 
 urlpatterns = [
     path('', auth_view, name='auth'),
@@ -15,4 +15,5 @@ urlpatterns = [
     path('comments/', comments, name='comments'),
     path('confirm_comment/', confirm_comment, name='confirm_comment'),
     path('cancel_comment/', cancel_comment, name='cancel_comment'),
+    path('delite_action/<int:pk>', delite_action, name='delite_action')
 ]

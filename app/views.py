@@ -13,7 +13,7 @@ from django.utils import timezone
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
-from app.models import Task, Template, Sessions, Comment, Donor
+from app.models import Task, Template, Sessions, Comment, Donor, Action
 from app.task import task_action
 import telethon
 
@@ -146,12 +146,12 @@ def get_code(request):
 
         # Получаем параметры
         phone = data.get('phone')
-        api_id = data.get('api_id')
-        api_hash = data.get('api_hash')
+        session_file = f'sessions/{phone}'
         # Запускаем асинхронный код синхронно
         async def async_get_code():
-            client = telethon.TelegramClient(f'{phone}', api_id, api_hash,
-                                     system_version="4.16.30-vxCUSTOM")
+            client = telethon.TelegramClient(session_file, api_id=CONSTANT_API_ID,
+                                                 api_hash=CONSTANT_API_HASH,
+                                                 system_version="4.16.30-vxCUSTOM")
             await client.connect()
 
             try:
@@ -185,8 +185,6 @@ class AddSessionView(View):
         file = request.FILES.get('session_file')
         gender = request.POST.get('gender')
         phone = request.POST.get('phone')
-        api_id = request.POST.get('api_id')
-        api_hash = request.POST.get('api_hash')
         donor_id = request.POST.get('donor_id')
         password = request.POST.get('password')
         code = request.POST.get('code')
@@ -199,14 +197,14 @@ class AddSessionView(View):
         client = None
         if not file:
             async def create_session():
-                client = telethon.TelegramClient(session_file, api_id, api_hash,
+                client = telethon.TelegramClient(session_file, api_id=CONSTANT_API_ID,
+                                                 api_hash=CONSTANT_API_HASH,
                                                  system_version="4.16.30-vxCUSTOM")
                 await client.connect()
                 try:
-                    await client.sign_in(phone, code=code, phone_code_hash=phone_code_hash)
-                    return session_file, client
-                except Exception as e:
-                    await client.sign_in(phone, code=code, phone_code_hash=phone_code_hash, password=password)
+                    await client.sign_in(phone, phone_code_hash=phone_code_hash, code=code)
+                except telethon.errors.SessionPasswordNeededError:
+                    await client.sign_in(password=password)
                     return session_file, client
                 finally:
                     await client.disconnect()
@@ -217,6 +215,7 @@ class AddSessionView(View):
                 client = telethon.TelegramClient(session_file, api_id=CONSTANT_API_ID,
                                                  api_hash=CONSTANT_API_HASH,
                                                  system_version="4.16.30-vxCUSTOM")
+                await client.connect()
                 return client
             if not client:
                 client = asyncio.run(create_session())
@@ -224,8 +223,6 @@ class AddSessionView(View):
             next_update_photo = timezone.now() + datetime.timedelta(seconds=pass_time)
             session = Sessions.objects.create(
                 phone=phone,
-                api_id=api_id,
-                api_hash=api_hash,
                 donor_id=donor_id,
                 password=password,
                 file=file,
@@ -276,3 +273,11 @@ def cancel_comment(request):
     if comment.task.user == user:
         comment.delete()
     return redirect('comments')
+
+
+def delite_action(request, pk):
+    action = Action.objects.get(id=pk)
+    task = Task.objects.get(action=action)
+    url = reverse('task_detail') + f'?task_id={task.id}'
+    action.delete()
+    return redirect(url)

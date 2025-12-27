@@ -17,8 +17,8 @@ from app.models import SubscribeTask, ActionTask, UnsubscribeTask
 
 async def unsubscribe_process(unsubscribe_task: UnsubscribeTask):
     task = await sync_to_async(lambda: unsubscribe_task.task)()
-    # Получаем сессии асинхронно
-    sessions = await sync_to_async(list)(unsubscribe_task.sessions.all())
+    channel_link = await sync_to_async(lambda: task.channel_link)()
+    sessions = await sync_to_async(list)(unsubscribe_task.sessions.all().order_by('id'))
     total_sessions = len(sessions)
 
     while True:
@@ -35,15 +35,11 @@ async def unsubscribe_process(unsubscribe_task: UnsubscribeTask):
                 client = await constant_functions.activate_session(session)
 
                 try:
-                    entity = await client.get_entity(task.channel_link)
-                    # Добавлен await для асинхронного вызова
                     await client(functions.channels.LeaveChannelRequest(
-                        channel=entity
+                        channel=channel_link
                     ))
                 except Exception as e:
                     print(f"Error unsubscribing from channel: {e}")
-                finally:
-                    await client.disconnect()
 
                 # Обновляем счетчик асинхронно
                 unsubscribe_task.unsubscribed_sessions = current_unsubscribed + 1
@@ -61,6 +57,8 @@ async def unsubscribe_process(unsubscribe_task: UnsubscribeTask):
 
         await asyncio.sleep(1)  # Уменьшил время сна для более responsive проверки
     try:
+        task.is_active = False
+        await sync_to_async(task.save)(update_fields=['is_active'])
         await sync_to_async(unsubscribe_task.delete)()
     except Exception:
         pass
@@ -68,7 +66,6 @@ async def unsubscribe_process(unsubscribe_task: UnsubscribeTask):
 
 async def main():
     while True:
-        print(2)
         # Получаем задачи асинхронно
         unsubscribe_tasks = await sync_to_async(list)(UnsubscribeTask.objects.filter(is_start=False))
 
@@ -78,4 +75,4 @@ async def main():
             await sync_to_async(unsubscribe_task.save)(update_fields=['is_start'])
             asyncio.create_task(unsubscribe_process(unsubscribe_task))
 
-        await asyncio.sleep(60)
+        await asyncio.sleep(5)
